@@ -208,13 +208,14 @@ test('publica a central de ajuda e o manual em PDF', async (context) => {
   const html = await page.text();
   assert.equal(page.status, 200);
   assert.match(html, /Como usar o Saldo Real/);
+  assert.match(html, /Manual completo em 10 páginas/);
   assert.match(html, /manual-saldo-real\.pdf/);
 
   const manual = await fetch(`${fixture.origin}/manual-saldo-real.pdf`);
   const bytes = await manual.arrayBuffer();
   assert.equal(manual.status, 200);
   assert.match(manual.headers.get('content-type'), /application\/pdf/);
-  assert.ok(bytes.byteLength > 50_000);
+  assert.ok(bytes.byteLength > 100_000);
 });
 
 test('exporta dados, troca a senha e invalida a sessão anterior', async (context) => {

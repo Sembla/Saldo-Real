@@ -353,7 +353,7 @@ export function createApp(config) {
       }
 
       if (req.method === 'GET' && pathname === '/api/health') {
-        return sendJson(res, 200, { status: 'ok', version: '0.3.1', timestamp: new Date().toISOString() });
+        return sendJson(res, 200, { status: 'ok', version: '0.3.2', timestamp: new Date().toISOString() });
       }
 
       if (req.method === 'POST' && pathname === '/api/auth/register') {

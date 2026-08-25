@@ -1,6 +1,6 @@
 {
   "name": "saldo-real",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "PWA global de previsibilidade financeira e saldo seguro para renda variável.",
   "private": true,
   "type": "module",

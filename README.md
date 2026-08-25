@@ -21,7 +21,7 @@ O problema é relevante no Brasil e fora dele. Pesquisas de endividamento, inadi
 - Cadastro, login e logout com sessões seguras.
 - **Experimentar sem conta:** saldo, lançamentos, planos e simulações ficam somente no navegador até o usuário decidir criar uma conta.
 - Backup local em JSON e migração explícita dos dados do visitante para uma conta nova.
-- Central de ajuda dentro do aplicativo e manual visual disponível para download em PDF.
+- Central de ajuda dentro do aplicativo e manual completo de 10 páginas, organizado em trilhas para usuários iniciantes e experientes.
 - Troca autenticada de senha com encerramento das outras sessões.
 - Exportação integral dos dados da conta em JSON.
 - Exclusão definitiva da conta e dos dados associados.

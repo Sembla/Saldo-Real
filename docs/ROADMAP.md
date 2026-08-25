@@ -20,7 +20,7 @@ O roadmap prioriza evidência de uso antes de complexidade técnica.
 ## 0.3 — Produto beta (atual)
 
 - Modo “Experimentar sem conta”, backup local e migração voluntária. **Concluído.**
-- Central de ajuda e manual do usuário para download. **Concluído.**
+- Central de ajuda e manual completo em trilhas para download. **Concluído.**
 - Onboarding guiado com primeiro valor em menos de três minutos.
 - Métricas de ativação e retenção com consentimento.
 - Edição completa de dívidas e metas.

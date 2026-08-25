@@ -218,6 +218,8 @@ small { color: var(--muted); font-weight: 400; }
 .help-hero { display: flex; align-items: center; justify-content: space-between; gap: 28px; margin-bottom: 16px; color: white; border-color: var(--ink); background: var(--ink); }
 .help-hero h2 { margin: 0 0 8px; font-family: Georgia, serif; font-size: 30px; font-weight: 400; }
 .help-hero p:not(.eyebrow) { max-width: 680px; margin: 0; color: rgba(255,255,255,.68); line-height: 1.55; }
+.help-trails-inline { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+.help-trails-inline span { border: 1px solid rgba(201,241,102,.28); border-radius: 99px; padding: 5px 9px; color: var(--lime); background: rgba(201,241,102,.08); font-size: 9px; font-weight: 850; text-transform: uppercase; letter-spacing: .04em; }
 .help-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
 .help-steps article > span { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 50%; color: var(--ink); background: var(--lime); font-size: 11px; font-weight: 900; }
 .help-steps h3 { margin: 18px 0 8px; font-family: Georgia, serif; font-size: 20px; font-weight: 400; }
