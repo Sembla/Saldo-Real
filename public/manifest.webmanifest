@@ -1,0 +1,13 @@
+{
+  "name": "Saldo Real",
+  "short_name": "Saldo Real",
+  "description": "Previsibilidade financeira e saldo seguro para renda variável.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f1e8",
+  "theme_color": "#10231d",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

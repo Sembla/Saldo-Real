@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#10231d">
+  <meta name="description" content="Saldo Real mostra quanto está realmente livre hoje e antecipa riscos no fluxo de caixa.">
+  <title>Saldo Real — seu dinheiro antes do susto</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+
+  <main id="auth-screen" class="auth-shell">
+    <section class="brand-panel">
+      <a class="brand" href="/" aria-label="Saldo Real">
+        <span class="brand-mark">SR</span>
+        <span>Saldo Real</span>
+      </a>
+      <div class="hero-copy">
+        <p class="eyebrow">Clareza antes da decisão</p>
+        <h1>Seu dinheiro,<br><em>antes do susto.</em></h1>
+        <p>Veja quanto está realmente livre hoje, o que vence nos próximos dias e onde o caixa pode apertar.</p>
+      </div>
+      <div class="proof-grid">
+        <article><strong>7 e 30</strong><span>dias projetados</span></article>
+        <article><strong>100%</strong><span>dos gastos no cálculo</span></article>
+        <article><strong>Global</strong><span>fontes oficiais</span></article>
+      </div>
+      <p class="microcopy">Educação e organização financeira. Sem promessas de retorno.</p>
+    </section>
+
+    <section class="auth-panel">
+      <div class="auth-card">
+        <p class="eyebrow">Comece em dois minutos</p>
+        <h2 id="auth-title">Entre na sua conta</h2>
+        <p id="auth-subtitle" class="muted">Seus dados ficam no seu ambiente.</p>
+        <form id="auth-form" novalidate>
+          <label id="name-field" class="hidden">Nome
+            <input id="auth-name" name="name" autocomplete="name" minlength="2" maxlength="80">
+          </label>
+          <label>E-mail
+            <input id="auth-email" name="email" type="email" autocomplete="email" required>
+          </label>
+          <label>Senha
+            <input id="auth-password" name="password" type="password" autocomplete="current-password" minlength="10" required>
+            <small id="password-hint" class="hidden">Mínimo de 10 caracteres, com letras e números.</small>
+          </label>
+          <button class="button primary full" type="submit"><span id="auth-action">Entrar</span></button>
+        </form>
+        <button id="auth-toggle" class="text-button" type="button">Ainda não tenho conta</button>
+        <p id="auth-error" class="form-error" role="alert"></p>
+      </div>
+    </section>
+  </main>
+
+  <div id="app-shell" class="app-shell hidden">
+    <aside class="sidebar">
+      <a class="brand sidebar-brand" href="#dashboard">
+        <span class="brand-mark">SR</span><span>Saldo Real</span>
+      </a>
+      <nav aria-label="Navegação principal">
+        <button class="nav-item active" data-view="dashboard"><span>◫</span>Painel</button>
+        <button class="nav-item" data-view="entries"><span>↕</span>Lançamentos</button>
+        <button class="nav-item" data-view="plans"><span>◎</span>Planos</button>
+        <button class="nav-item" data-view="context"><span>⌾</span>Contexto</button>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="user-chip"><span id="user-avatar">U</span><div><strong id="user-name">Usuário</strong><small id="user-email"></small></div></div>
+        <button id="logout" class="text-button left">Sair</button>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <button id="menu-toggle" class="icon-button mobile-only" aria-label="Abrir menu">☰</button>
+        <div>
+          <p class="topbar-label">Espaço financeiro</p>
+          <select id="space-select" aria-label="Selecionar espaço"></select>
+        </div>
+        <div class="topbar-actions">
+          <button id="edit-balance" class="button secondary">Ajustar saldo</button>
+          <button id="new-entry" class="button primary">+ Lançamento</button>
+        </div>
+      </header>
+
+      <main class="content">
+        <div id="notice" class="notice hidden" role="status"></div>
+
+        <section id="view-dashboard" class="view active">
+          <div class="page-heading">
+            <div><p class="eyebrow">Visão de hoje</p><h1>Quanto está realmente livre?</h1></div>
+            <time id="today-label"></time>
+          </div>
+
+          <form id="quick-entry-form" class="quick-entry">
+            <span aria-hidden="true">✦</span>
+            <label class="sr-only" for="quick-entry">Descreva um lançamento</label>
+            <input id="quick-entry" placeholder="Ex.: aluguel 1.200 dia 10, todo mês" autocomplete="off">
+            <button type="submit" class="button ink">Interpretar e adicionar</button>
+          </form>
+
+          <div class="metric-grid">
+            <article class="metric-card hero-metric">
+              <span>Saldo seguro para gastar</span>
+              <strong id="safe-to-spend">—</strong>
+              <p id="safe-summary">Carregando projeção...</p>
+            </article>
+            <article class="metric-card">
+              <span>Saldo atual</span><strong id="current-balance">—</strong><p id="buffer-label">—</p>
+            </article>
+            <article class="metric-card">
+              <span>Em 30 dias</span><strong id="ending-balance">—</strong><p id="flow-summary">—</p>
+            </article>
+            <article class="metric-card health-card">
+              <span>Saúde do fluxo</span><strong id="health-score">—</strong><p id="health-label">—</p>
+            </article>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="panel chart-panel">
+              <div class="panel-heading"><div><p class="eyebrow">Projeção</p><h2>Próximos 30 dias</h2></div><span id="forecast-status" class="status-pill">—</span></div>
+              <div id="forecast-chart" class="chart" aria-label="Gráfico da projeção de saldo"></div>
+              <div class="chart-legend"><span><i class="dot balance-dot"></i>Saldo projetado</span><span><i class="dot buffer-dot"></i>Reserva mínima</span></div>
+            </article>
+            <article class="panel upcoming-panel">
+              <div class="panel-heading"><div><p class="eyebrow">Agenda</p><h2>Próximos movimentos</h2></div><button class="text-button" data-view-link="entries">Ver todos</button></div>
+              <div id="upcoming-list" class="list"></div>
+            </article>
+          </div>
+          <p class="disclaimer">Indicadores educativos baseados nos dados informados. Não constituem recomendação financeira.</p>
+        </section>
+
+        <section id="view-entries" class="view">
+          <div class="page-heading"><div><p class="eyebrow">Controle de caixa</p><h1>Lançamentos</h1></div><button class="button primary" data-open-entry>+ Novo</button></div>
+          <article class="panel"><div id="entries-list" class="data-list"></div></article>
+        </section>
+
+        <section id="view-plans" class="view">
+          <div class="page-heading"><div><p class="eyebrow">Próximos passos</p><h1>Dívidas e metas</h1></div></div>
+          <div class="two-column">
+            <article class="panel">
+              <div class="panel-heading"><div><p class="eyebrow">Compromissos</p><h2>Dívidas</h2></div></div>
+              <form id="debt-form" class="compact-form">
+                <input name="name" placeholder="Ex.: Cartão" required>
+                <input name="balance" inputmode="decimal" placeholder="Saldo total" required>
+                <input name="minimum" inputmode="decimal" placeholder="Parcela mínima">
+                <button class="button secondary" type="submit">Adicionar dívida</button>
+              </form>
+              <div id="debts-list" class="list"></div>
+            </article>
+            <article class="panel">
+              <div class="panel-heading"><div><p class="eyebrow">Construção</p><h2>Metas</h2></div></div>
+              <form id="goal-form" class="compact-form">
+                <input name="name" placeholder="Ex.: Reserva de emergência" required>
+                <input name="target" inputmode="decimal" placeholder="Valor-alvo" required>
+                <select name="kind"><option value="emergency">Reserva</option><option value="general">Geral</option><option value="purchase">Compra</option><option value="debt">Quitar dívida</option></select>
+                <button class="button secondary" type="submit">Adicionar meta</button>
+              </form>
+              <div id="goals-list" class="list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="view-context" class="view">
+          <div class="page-heading"><div><p class="eyebrow">Brasil e mundo</p><h1>Contexto econômico</h1></div></div>
+          <div class="context-controls panel">
+            <label>País <select id="country-select"><option value="BR">Brasil</option><option value="US">Estados Unidos</option><option value="PT">Portugal</option><option value="GB">Reino Unido</option><option value="DE">Alemanha</option><option value="FR">França</option><option value="ES">Espanha</option><option value="MX">México</option><option value="AR">Argentina</option><option value="IN">Índia</option><option value="JP">Japão</option></select></label>
+            <button id="load-context" class="button primary">Carregar dados oficiais</button>
+          </div>
+          <div id="context-results" class="context-grid"></div>
+          <article class="panel sources-panel"><div class="panel-heading"><div><p class="eyebrow">Rastreabilidade</p><h2>Fontes do produto</h2></div></div><div id="sources-list" class="sources-list"></div></article>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <dialog id="entry-dialog">
+    <form id="entry-form" method="dialog" class="dialog-form">
+      <div class="dialog-heading"><div><p class="eyebrow">Fluxo de caixa</p><h2>Novo lançamento</h2></div><button class="icon-button" value="cancel" formnovalidate aria-label="Fechar">×</button></div>
+      <div class="field-grid">
+        <label class="wide">Descrição<input name="title" required maxlength="100" placeholder="Ex.: Aluguel"></label>
+        <label>Tipo<select name="type"><option value="expense">Saída</option><option value="income">Entrada</option></select></label>
+        <label>Valor<input name="amount" inputmode="decimal" required placeholder="0,00"></label>
+        <label>Data<input name="date" type="date" required></label>
+        <label>Categoria<select name="category"><option value="housing">Moradia</option><option value="food">Alimentação</option><option value="transport">Transporte</option><option value="utilities">Contas</option><option value="health">Saúde</option><option value="income">Renda</option><option value="other">Outros</option></select></label>
+        <label>Recorrência<select name="recurrence"><option value="none">Não repetir</option><option value="weekly">Semanal</option><option value="monthly">Mensal</option><option value="yearly">Anual</option></select></label>
+        <label>Confiança da entrada<select name="confidence"><option value="1">Certa (100%)</option><option value="0.8">Provável (80%)</option><option value="0.5">Incerta (50%)</option></select></label>
+      </div>
+      <p class="form-error" data-dialog-error role="alert"></p>
+      <button class="button primary full" value="default" type="submit">Salvar lançamento</button>
+    </form>
+  </dialog>
+
+  <dialog id="balance-dialog">
+    <form id="balance-form" method="dialog" class="dialog-form">
+      <div class="dialog-heading"><div><p class="eyebrow">Ponto de partida</p><h2>Ajustar valores</h2></div><button class="icon-button" value="cancel" formnovalidate aria-label="Fechar">×</button></div>
+      <label>Saldo disponível agora<input name="balance" inputmode="decimal" required></label>
+      <label>Reserva mínima que não deve ser gasta<input name="buffer" inputmode="decimal" required></label>
+      <p class="form-error" data-dialog-error role="alert"></p>
+      <button class="button primary full" value="default" type="submit">Atualizar projeção</button>
+    </form>
+  </dialog>
+</body>
+</html>

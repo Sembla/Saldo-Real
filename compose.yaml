@@ -1,0 +1,18 @@
+services:
+  saldo-real:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3000
+      DATABASE_PATH: /app/data/saldo-real.db
+      APP_ORIGIN: http://localhost:3000
+      COOKIE_SECURE: "false"
+      OUTBOUND_DATA_ENABLED: "true"
+    volumes:
+      - saldo-real-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  saldo-real-data:

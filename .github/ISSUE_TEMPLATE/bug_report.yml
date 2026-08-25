@@ -1,0 +1,28 @@
+name: Bug
+description: Relate um comportamento reproduzível.
+title: "bug: "
+labels: [bug]
+body:
+  - type: textarea
+    id: behavior
+    attributes:
+      label: O que aconteceu?
+      description: Não inclua e-mail, saldos reais ou outros dados pessoais.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Como reproduzir?
+      placeholder: "1. Acesse...\n2. Preencha...\n3. Observe..."
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Versão do Node.js
+      placeholder: v24.15.0
+  - type: input
+    id: browser
+    attributes:
+      label: Navegador e sistema
