@@ -6,6 +6,10 @@
 [![Node.js](https://img.shields.io/badge/Node.js-24-10231d?logo=node.js)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-c9f166.svg)](LICENSE)
 
+**Beta online:** [saldo-real-production.up.railway.app](https://saldo-real-production.up.railway.app)
+
+> Use dados fictícios durante a validação inicial. A versão beta ainda não possui recuperação de senha, confirmação de e-mail ou exportação integral dos dados.
+
 ## Por que este produto existe
 
 Muitos aplicativos mostram o que já aconteceu. O **Saldo Real** trabalha na dor que vem antes da decisão: “posso gastar isso sem faltar para as contas?”. Ele calcula o menor saldo projetado, preserva uma reserva definida pelo usuário e reduz entradas variáveis pela probabilidade de recebimento — sem suavizar despesas.

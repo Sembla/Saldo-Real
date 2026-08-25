@@ -200,10 +200,18 @@ function parseNaturalEntry(text, today) {
     ['income', /salário|salario|freela|venda|receb/],
   ];
   const category = categoryRules.find(([, pattern]) => pattern.test(lower))?.[0] ?? 'other';
-  const title = normalized
+  const rawTitle = normalized
     .replace(/(?:r\$|\$|€|£)?\s*\d[\d.,\s]*/i, '')
     .replace(/\b(?:dia\s+)?\d{1,2}[/-]\d{1,2}(?:[/-]\d{2,4})?\b/i, '')
-    .trim() || (type === 'income' ? 'Entrada' : 'Saída');
+    .replace(/\bdia\s+\d{1,2}\b/gi, '')
+    .replace(/\b(?:todo mês|toda semana|mensalmente|mensal|semanalmente|semanal|monthly|weekly)\b/gi, '')
+    .replace(/\b(?:receber|recebi|pagar|paguei)\b/gi, '')
+    .replace(/\s+/g, ' ')
+    .replace(/^[\s,.-]+|[\s,.-]+$/g, '')
+    .trim();
+  const title = rawTitle
+    ? `${rawTitle.charAt(0).toLocaleUpperCase('pt-BR')}${rawTitle.slice(1)}`
+    : type === 'income' ? 'Entrada' : 'Saída';
   return { title, type, amountCents, category, date, recurrence, confidence: type === 'income' && /freela|venda/.test(lower) ? 0.8 : 1 };
 }
 

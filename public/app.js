@@ -16,6 +16,10 @@ const categoryLabels = {
   health: 'Saúde', income: 'Renda', other: 'Outros',
 };
 
+const recurrenceLabels = {
+  none: 'Único', weekly: 'Semanal', monthly: 'Mensal', yearly: 'Anual',
+};
+
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, (character) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
@@ -173,7 +177,7 @@ function entryRow(entry, deletable = false) {
   const income = entry.type === 'income';
   return `<div class="list-row">
     <span class="list-icon ${income ? 'income' : ''}">${income ? '↗' : '↘'}</span>
-    <span class="list-copy"><strong>${escapeHtml(entry.title)}</strong><small>${formatDate(entry.date)} · ${escapeHtml(categoryLabels[entry.category] ?? entry.category ?? 'Outros')}${entry.recurrence && entry.recurrence !== 'none' ? ` · ${escapeHtml(entry.recurrence)}` : ''}</small></span>
+    <span class="list-copy"><strong>${escapeHtml(entry.title)}</strong><small>${formatDate(entry.date)} · ${escapeHtml(categoryLabels[entry.category] ?? entry.category ?? 'Outros')}${entry.recurrence && entry.recurrence !== 'none' ? ` · ${escapeHtml(recurrenceLabels[entry.recurrence] ?? entry.recurrence)}` : ''}</small></span>
     <span class="list-value ${income ? 'income' : ''}">${income ? '+' : '−'} ${formatMoney(entry.amountCents)}</span>
     ${deletable ? `<button class="delete-button" data-delete-entry="${entry.id}" aria-label="Excluir ${escapeHtml(entry.title)}">×</button>` : ''}
   </div>`;

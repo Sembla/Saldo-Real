@@ -91,7 +91,17 @@ test('protege dados entre usuários e interpreta texto curto', async (context) =
   });
   assert.equal(parsed.response.status, 200);
   assert.equal(parsed.payload.entry.amountCents, 120_000);
+  assert.equal(parsed.payload.entry.title, 'Aluguel');
   assert.equal(parsed.payload.entry.category, 'housing');
   assert.equal(parsed.payload.entry.recurrence, 'monthly');
   assert.equal(parsed.payload.entry.date, '2026-09-10');
+
+  const parsedIncome = await jsonRequest(fixture.origin, '/api/entries/parse', {
+    method: 'POST', cookie: secondCookie,
+    body: { text: 'receber salário R$ 2.500 dia 01 todo mês', today: '2026-08-25' },
+  });
+  assert.equal(parsedIncome.response.status, 200);
+  assert.equal(parsedIncome.payload.entry.title, 'Salário');
+  assert.equal(parsedIncome.payload.entry.type, 'income');
+  assert.equal(parsedIncome.payload.entry.amountCents, 250_000);
 });
