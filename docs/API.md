@@ -31,6 +31,7 @@ Exemplo:
 | `GET/POST` | `/spaces` | Lista ou cria espaço |
 | `PATCH/DELETE` | `/spaces/:id` | Atualiza ou remove espaço |
 | `GET` | `/spaces/:id/dashboard` | Projeções, saúde, agenda, dívidas e metas |
+| `POST` | `/spaces/:id/decisions/simulate` | Compara cenários de uma decisão sem persistir ou movimentar dinheiro |
 
 Um espaço aceita `name`, `kind` (`personal` ou `business`), `currency`, `locale`, `currentBalanceCents` e `emergencyBufferCents`.
 
@@ -63,7 +64,20 @@ Um espaço aceita `name`, `kind` (`personal` ou `business`), `currency`, `locale
 | `GET/POST` | `/spaces/:id/debts` | Lista ou cria dívida |
 | `DELETE` | `/debts/:id` | Remove dívida |
 | `GET/POST` | `/spaces/:id/goals` | Lista ou cria meta |
-| `DELETE` | `/goals/:id` | Remove meta |
+| `PATCH/DELETE` | `/goals/:id` | Atualiza progresso ou remove meta |
+
+## Decisão Segura
+
+```json
+{
+  "title": "Notebook para trabalhar",
+  "amountCents": 450000,
+  "desiredDate": "2026-10-15",
+  "installments": 6
+}
+```
+
+A resposta contém o fluxo-base, o veredito explicável, os cenários `cashNow`, `planned` e `installments`, a primeira data segura estimada e um plano mensal aproximado. Entradas variáveis continuam ajustadas pela confiança e despesas entram integralmente.
 
 ## Dados externos
 

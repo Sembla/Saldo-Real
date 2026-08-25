@@ -287,6 +287,20 @@ export function createRepository(db) {
       return mapGoal(db.prepare('SELECT * FROM goals WHERE id = ?').get(id));
     },
 
+    getGoal(ownerId, id) {
+      return mapGoal(db.prepare(`SELECT g.* FROM goals g JOIN spaces s ON s.id = g.space_id
+        WHERE g.id = ? AND s.owner_id = ?`).get(id, ownerId));
+    },
+
+    updateGoal(ownerId, id, input) {
+      if (!this.getGoal(ownerId, id)) return null;
+      db.prepare(`UPDATE goals SET name = ?, target_cents = ?, current_cents = ?, target_date = ?,
+        kind = ?, updated_at = ? WHERE id = ?`).run(
+        input.name, input.targetCents, input.currentCents, input.targetDate, input.kind, now(), id,
+      );
+      return this.getGoal(ownerId, id);
+    },
+
     listGoals(ownerId, spaceId) {
       if (!this.getSpace(ownerId, spaceId)) return null;
       return db.prepare('SELECT * FROM goals WHERE space_id = ? ORDER BY created_at').all(spaceId).map(mapGoal);

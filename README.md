@@ -28,8 +28,9 @@ O problema é relevante no Brasil e fora dele. Pesquisas de endividamento, inadi
 - Ajuste de renda variável por nível de confiança.
 - Entrada rápida em português, como `aluguel R$ 1.200 dia 10 todo mês`.
 - Projeções de 7 e 30 dias com data de risco e valor seguro para gastar.
+- **Decisão Segura:** compara pagar agora, esperar ou parcelar e explica o impacto de cada caminho no caixa e na reserva.
 - Indicador educativo de saúde do fluxo.
-- Cadastro de dívidas e metas.
+- Cadastro de dívidas, metas e atualização visual do progresso.
 - Contexto por país com World Bank Indicators e Selic pelo Banco Central do Brasil.
 - Catálogo rastreável de fontes oficiais globais e brasileiras.
 - PWA responsiva e instalável, sem biblioteca de interface externa.
@@ -70,7 +71,7 @@ O banco fica no volume `saldo-real-data`.
 ```mermaid
 flowchart TD
   UI["PWA responsiva"] --> API["API Node.js"]
-  API --> CORE["Motor de projeção"]
+  API --> CORE["Projeção e simulador de decisões"]
   API --> DB[("SQLite")]
   API --> ADAPTERS["Adaptadores oficiais"]
   ADAPTERS --> WB["World Bank"]
@@ -87,6 +88,7 @@ A escolha por Node.js nativo + SQLite deixa o MVP fácil de executar, auditar e 
 4. O motor percorre cada dia e encontra o menor saldo do período.
 5. `saldo seguro = máximo(0, menor saldo projetado − reserva mínima)`.
 6. Se o saldo ficar negativo, a primeira data é apresentada como risco crítico; se apenas tocar a reserva, vira atenção.
+7. O simulador aplica uma decisão hipotética ao mesmo fluxo e compara compra imediata, data desejada e parcelamento, sem movimentar dinheiro.
 
 Valores monetários são armazenados em centavos inteiros para evitar erros de ponto flutuante.
 

@@ -106,6 +106,46 @@ test('protege dados entre usuários e interpreta texto curto', async (context) =
   assert.equal(parsedIncome.payload.entry.amountCents, 250_000);
 });
 
+test('simula uma decisão usando o fluxo autenticado do espaço', async (context) => {
+  const fixture = await startTestApp();
+  context.after(fixture.close);
+
+  const registration = await jsonRequest(fixture.origin, '/api/auth/register', {
+    method: 'POST',
+    body: { name: 'Pessoa Decisora', email: 'decisao@example.com', password: 'SenhaForte2026' },
+  });
+  const cookie = registration.response.headers.get('set-cookie').split(';')[0];
+  const space = registration.payload.spaces[0];
+  await jsonRequest(fixture.origin, `/api/spaces/${space.id}`, {
+    method: 'PATCH', cookie,
+    body: { currentBalanceCents: 300_000, emergencyBufferCents: 50_000 },
+  });
+
+  const simulation = await jsonRequest(fixture.origin, `/api/spaces/${space.id}/decisions/simulate`, {
+    method: 'POST', cookie,
+    body: {
+      title: 'Notebook', amountCents: 100_000, desiredDate: '2026-09-10',
+      installments: 3, today: '2026-08-25',
+    },
+  });
+
+  assert.equal(simulation.response.status, 200);
+  assert.equal(simulation.payload.simulation.verdict.recommendation, 'buy_now');
+  assert.equal(simulation.payload.simulation.scenarios.cashNow.safe, true);
+  assert.equal(simulation.payload.simulation.assumptions.simulationDoesNotMoveMoney, true);
+
+  const createdGoal = await jsonRequest(fixture.origin, `/api/spaces/${space.id}/goals`, {
+    method: 'POST', cookie,
+    body: { name: 'Notebook', targetCents: 100_000, targetDate: '2026-09-10', kind: 'purchase' },
+  });
+  const updatedGoal = await jsonRequest(fixture.origin, `/api/goals/${createdGoal.payload.goal.id}`, {
+    method: 'PATCH', cookie,
+    body: { currentCents: 25_000 },
+  });
+  assert.equal(updatedGoal.response.status, 200);
+  assert.equal(updatedGoal.payload.goal.currentCents, 25_000);
+});
+
 test('exporta dados, troca a senha e invalida a sessão anterior', async (context) => {
   const fixture = await startTestApp();
   context.after(fixture.close);

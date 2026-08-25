@@ -16,6 +16,7 @@ Quando tenho contas com datas diferentes e renda que pode variar, quero saber o 
 |---|---|
 | O usuário volta para conferir o saldo seguro | Pelo menos 3 acessos por semana |
 | A projeção muda uma decisão real | Relato de gasto adiado, reduzido ou reorganizado |
+| Comparar caminhos reduz ansiedade | Usuário simula antes da compra e entende por que um caminho é mais seguro |
 | Texto reduz a fricção de cadastro | Maioria dos lançamentos criada pelo campo rápido |
 | Separar pessoal e negócio traz clareza | Usuário mantém ambos os espaços por duas semanas |
 | Existe disposição de pagar | Teste de R$ 9,90 a R$ 19,90/mês após valor percebido |
@@ -37,6 +38,7 @@ Quando tenho contas com datas diferentes e renda que pode variar, quero saber o 
 | Retenção D7 | Retorno até o sétimo dia | 35% |
 | Precisão percebida | Usuário confirma que a agenda representa o mês | 80% |
 | Decisão influenciada | Relato de ação tomada com base na projeção | 40% |
+| Simulação concluída | Usuário compara caminhos após informar uma decisão | 50% dos usuários ativados |
 
 ## Fora do MVP
 

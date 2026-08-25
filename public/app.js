@@ -7,6 +7,7 @@ const state = {
   spaces: [],
   spaceId: null,
   dashboard: null,
+  decision: null,
   entries: [],
   sources: [],
 };
@@ -63,6 +64,12 @@ function formatDate(date) {
   }).format(new Date(`${date}T00:00:00Z`));
 }
 
+function isoDateAfter(days) {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
 function currentSpace() {
   return state.spaces.find((space) => space.id === state.spaceId);
 }
@@ -91,6 +98,10 @@ function showApp() {
   $('#account-email').textContent = state.user.email;
   $('#account-avatar').textContent = state.user.name.slice(0, 1).toUpperCase();
   $('#today-label').textContent = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }).format(new Date());
+  const decisionDate = $('#decision-form [name="desiredDate"]');
+  const today = new Date().toISOString().slice(0, 10);
+  decisionDate.min = today;
+  if (!decisionDate.value) decisionDate.value = isoDateAfter(30);
   renderSpaceSelect();
 }
 
@@ -223,9 +234,60 @@ function renderPlans() {
     <span class="list-value">${formatMoney(debt.balanceCents)}</span><button class="delete-button" data-delete-debt="${debt.id}" aria-label="Excluir dívida">×</button></div>`).join('') : empty('Cadastre compromissos para medir o peso no orçamento.');
   $('#goals-list').innerHTML = goals.length ? goals.map((goal) => {
     const progress = Math.min(100, Math.round(goal.currentCents / goal.targetCents * 100));
-    return `<div class="list-row"><span class="list-icon income">${progress}%</span><span class="list-copy"><strong>${escapeHtml(goal.name)}</strong><small>${formatMoney(goal.currentCents)} acumulados</small></span>
-      <span class="list-value">${formatMoney(goal.targetCents)}</span><button class="delete-button" data-delete-goal="${goal.id}" aria-label="Excluir meta">×</button></div>`;
+    return `<article class="goal-card">
+      <div class="goal-card-heading"><div><span class="goal-kind">${goal.kind === 'purchase' ? 'Decisão' : goal.kind === 'emergency' ? 'Reserva' : 'Meta'}</span><h3>${escapeHtml(goal.name)}</h3></div><strong>${progress}%</strong></div>
+      <progress max="100" value="${progress}" aria-label="Progresso da meta ${escapeHtml(goal.name)}">${progress}%</progress>
+      <div class="goal-values"><span>${formatMoney(goal.currentCents)} construídos</span><span>de ${formatMoney(goal.targetCents)}</span></div>
+      ${goal.targetDate ? `<small>Data desejada: ${formatDate(goal.targetDate)}</small>` : ''}
+      <div class="goal-actions"><button class="text-button" type="button" data-update-goal="${goal.id}">Atualizar progresso</button><button class="delete-button" data-delete-goal="${goal.id}" aria-label="Excluir meta">×</button></div>
+    </article>`;
   }).join('') : empty('Defina uma reserva ou um objetivo concreto.');
+}
+
+function decisionScenario(label, scenario) {
+  const safeLabel = scenario.safe ? 'Reserva preservada' : scenario.riskDate ? 'Saldo pode ficar negativo' : 'Encosta na reserva';
+  const riskCopy = scenario.riskDate
+    ? `Risco em ${formatDate(scenario.riskDate)}`
+    : scenario.bufferRiskDate ? `Reserva tocada em ${formatDate(scenario.bufferRiskDate)}` : 'Sem dia de risco no período';
+  const paymentCopy = scenario.installments > 1
+    ? `${scenario.installments} × ${formatMoney(scenario.installmentAmountCents)}`
+    : formatMoney(scenario.amountCents);
+  return `<article class="scenario-card ${scenario.safe ? 'safe' : 'unsafe'}">
+    <div class="scenario-heading"><span>${escapeHtml(label)}</span><strong>${scenario.safe ? 'Seguro' : 'Atenção'}</strong></div>
+    <h3>${paymentCopy}</h3>
+    <p>${safeLabel}</p>
+    <dl><div><dt>Pior saldo</dt><dd>${formatMoney(scenario.minimumBalanceCents)}</dd></div><div><dt>Leitura</dt><dd>${riskCopy}</dd></div></dl>
+  </article>`;
+}
+
+function renderDecision(simulation) {
+  state.decision = simulation;
+  const { decision, verdict, scenarios, targetPlan } = simulation;
+  const coverage = Math.min(100, Math.round(targetPlan.availableNowCents / Math.max(1, decision.amountCents) * 100));
+  const verdictCopy = verdict.recommendation === 'buy_now'
+    ? { label: 'Pode caber agora', title: 'A compra preserva sua reserva.' }
+    : verdict.recommendation === 'installments'
+      ? { label: 'Melhor caminho', title: `Parcelar em ${decision.installments} vezes protege melhor o caixa.` }
+      : verdict.recommendation === 'wait'
+        ? { label: 'Melhor caminho', title: `Espere até ${formatDate(verdict.earliestSafeDate ?? decision.desiredDate)}.` }
+        : { label: 'Plano necessário', title: 'Ainda não cabe com segurança.' };
+  const scenariosHtml = [
+    decisionScenario('Pagar agora', scenarios.cashNow),
+    decisionScenario(`Em ${formatDate(decision.desiredDate)}`, scenarios.planned),
+    ...(decision.installments > 1 ? [decisionScenario(`Parcelar em ${decision.installments}×`, scenarios.installments)] : []),
+  ].join('');
+
+  $('#decision-result').innerHTML = `<div class="decision-verdict ${verdict.recommendation}">
+    <div><p class="eyebrow">${verdictCopy.label}</p><h2>${verdictCopy.title}</h2><p>${escapeHtml(verdict.explanation)}</p></div>
+    <div class="decision-progress-card"><strong>${coverage}%</strong><span>do valor coberto pelo saldo seguro de hoje</span></div>
+  </div>
+  <progress class="decision-progress" max="100" value="${coverage}" aria-label="Cobertura segura da decisão">${coverage}%</progress>
+  <div class="scenario-grid">${scenariosHtml}</div>
+  <div class="decision-plan-action">
+    <div><p class="eyebrow">Plano executável</p><h3>${targetPlan.remainingCents > 0 ? `${formatMoney(targetPlan.remainingCents)} ainda precisam ser construídos` : 'O valor já cabe no saldo seguro'}</h3>
+    <p>${targetPlan.remainingCents > 0 ? `Estimativa de ${formatMoney(targetPlan.estimatedMonthlyContributionCents)} por mês até a data desejada.` : 'Você ainda pode salvar esta intenção como meta para acompanhar a decisão.'}</p></div>
+    <button class="button secondary" type="button" data-save-decision-goal>Transformar em plano</button>
+  </div>`;
 }
 
 function renderSources() {
@@ -333,6 +395,71 @@ async function saveGoal(event) {
     }) });
     form.reset(); notice('Meta adicionada.'); await refreshAll();
   } catch (error) { notice(error.message, 'error'); }
+}
+
+async function simulateDecisionForm(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const error = $('[data-decision-error]');
+  const button = form.querySelector('button[type="submit"]');
+  error.textContent = '';
+  button.disabled = true;
+  try {
+    const data = new FormData(form);
+    const payload = await api(`/api/spaces/${state.spaceId}/decisions/simulate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        title: data.get('title'),
+        amountCents: moneyToCents(data.get('amount')),
+        desiredDate: data.get('desiredDate'),
+        installments: Number(data.get('installments')),
+      }),
+    });
+    renderDecision(payload.simulation);
+  } catch (caught) {
+    error.textContent = caught.message;
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function saveDecisionAsGoal() {
+  if (!state.decision) return;
+  const { decision } = state.decision;
+  try {
+    await api(`/api/spaces/${state.spaceId}/goals`, {
+      method: 'POST',
+      body: JSON.stringify({
+        name: decision.title,
+        targetCents: decision.amountCents,
+        targetDate: decision.desiredDate,
+        kind: 'purchase',
+      }),
+    });
+    notice('Decisão transformada em plano.');
+    await refreshAll();
+    switchView('plans');
+  } catch (error) {
+    notice(error.message, 'error');
+  }
+}
+
+async function updateGoalProgress(button) {
+  const goal = state.dashboard?.goals.find((item) => item.id === button.dataset.updateGoal);
+  if (!goal) return;
+  const current = (goal.currentCents / 100).toFixed(2).replace('.', ',');
+  const value = window.prompt(`Quanto já foi construído para “${goal.name}”?`, current);
+  if (value === null) return;
+  try {
+    await api(`/api/goals/${goal.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ currentCents: moneyToCents(value) }),
+    });
+    notice('Progresso atualizado.');
+    await refreshAll();
+  } catch (error) {
+    notice(error.message, 'error');
+  }
 }
 
 async function loadContext() {
@@ -490,6 +617,7 @@ $('#edit-balance').addEventListener('click', openBalanceDialog);
 $('#entry-form').addEventListener('submit', saveEntry);
 $('#balance-form').addEventListener('submit', saveBalance);
 $('#quick-entry-form').addEventListener('submit', quickEntry);
+$('#decision-form').addEventListener('submit', simulateDecisionForm);
 $('#debt-form').addEventListener('submit', saveDebt);
 $('#goal-form').addEventListener('submit', saveGoal);
 $('#load-context').addEventListener('click', loadContext);
@@ -501,9 +629,13 @@ document.addEventListener('click', (event) => {
   const entry = event.target.closest('[data-delete-entry]');
   const debt = event.target.closest('[data-delete-debt]');
   const goal = event.target.closest('[data-delete-goal]');
+  const saveDecision = event.target.closest('[data-save-decision-goal]');
+  const updateGoal = event.target.closest('[data-update-goal]');
   if (entry) deleteEntity(entry, 'entry');
   if (debt) deleteEntity(debt, 'debt');
   if (goal) deleteEntity(goal, 'goal');
+  if (saveDecision) saveDecisionAsGoal();
+  if (updateGoal) updateGoalProgress(updateGoal);
 });
 
 initialize();

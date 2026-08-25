@@ -1,4 +1,4 @@
-const CACHE = 'saldo-real-shell-v2';
+const CACHE = 'saldo-real-shell-v3';
 const SHELL = ['/', '/styles.css', '/app.js', '/icon.svg', '/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {

@@ -14,6 +14,8 @@ O roadmap prioriza evidência de uso antes de complexidade técnica.
 
 - Exportação e exclusão integral dos dados. **Concluído.**
 - Troca autenticada de senha e encerramento das demais sessões. **Concluído.**
+- Simulador Decisão Segura com comparação entre agora, espera e parcelamento. **Concluído.**
+- Metas com atualização visual de progresso. **Concluído.**
 
 - Onboarding com primeiro valor em menos de cinco minutos.
 - Métricas de ativação e retenção com consentimento.

@@ -64,6 +64,7 @@
       </a>
       <nav aria-label="Navegação principal">
         <button class="nav-item active" data-view="dashboard"><span>◫</span>Painel</button>
+        <button class="nav-item" data-view="decisions"><span>◇</span>Decidir</button>
         <button class="nav-item" data-view="entries"><span>↕</span>Lançamentos</button>
         <button class="nav-item" data-view="plans"><span>◎</span>Planos</button>
         <button class="nav-item" data-view="context"><span>⌾</span>Contexto</button>
@@ -94,7 +95,7 @@
         <section id="view-dashboard" class="view active">
           <div class="page-heading">
             <div><p class="eyebrow">Visão de hoje</p><h1>Quanto está realmente livre?</h1></div>
-            <time id="today-label"></time>
+            <div class="page-heading-actions"><time id="today-label"></time><button class="text-button" data-view-link="decisions">Simular uma decisão</button></div>
           </div>
 
           <form id="quick-entry-form" class="quick-entry">
@@ -133,6 +134,38 @@
             </article>
           </div>
           <p class="disclaimer">Indicadores educativos baseados nos dados informados. Não constituem recomendação financeira.</p>
+        </section>
+
+        <section id="view-decisions" class="view">
+          <div class="page-heading">
+            <div><p class="eyebrow">Decisão segura</p><h1>Antes de comprar, veja o depois.</h1></div>
+          </div>
+          <div class="decision-layout">
+            <article class="panel decision-input-panel">
+              <div class="panel-heading"><div><p class="eyebrow">Simulador</p><h2>O que você está pensando?</h2></div></div>
+              <form id="decision-form" class="decision-form">
+                <label>Decisão<input name="title" maxlength="100" placeholder="Ex.: comprar um notebook" required></label>
+                <label>Valor total<input name="amount" inputmode="decimal" placeholder="R$ 0,00" required></label>
+                <label>Quando gostaria de fazer?<input name="desiredDate" type="date" required></label>
+                <label>Comparar parcelamento<select name="installments"><option value="1">À vista</option><option value="3">3 vezes</option><option value="6">6 vezes</option><option value="12">12 vezes</option></select></label>
+                <p class="form-error" data-decision-error role="alert"></p>
+                <button class="button primary full" type="submit">Comparar caminhos</button>
+              </form>
+              <div class="decision-trust">
+                <strong>O cálculo usa seu fluxo real</strong>
+                <span>Contas futuras, reserva mínima e confiança das entradas são consideradas. Nenhum dinheiro é movimentado.</span>
+              </div>
+            </article>
+
+            <article id="decision-result" class="panel decision-result" aria-live="polite">
+              <div class="decision-empty">
+                <span>◇</span>
+                <h2>Uma decisão, três caminhos.</h2>
+                <p>Compare pagar agora, esperar ou parcelar — e veja o pior dia do caixa antes de escolher.</p>
+              </div>
+            </article>
+          </div>
+          <p class="disclaimer">Simulação educativa baseada nos dados informados. Não constitui recomendação de compra, crédito ou investimento.</p>
         </section>
 
         <section id="view-entries" class="view">

@@ -20,7 +20,7 @@ flowchart TD
 | Área | Responsabilidade |
 |---|---|
 | `public/` | Interface acessível, responsiva, instalável e sem dependências de CDN |
-| `src/domain/` | Projeção, recorrência e indicador educativo; funções puras e testáveis |
+| `src/domain/` | Projeção, recorrência, indicador educativo e simulação de decisões; funções puras e testáveis |
 | `src/db/` | Migrações idempotentes, acesso parametrizado e isolamento por proprietário |
 | `src/security/` | Hash de senha, token de sessão e cookies |
 | `src/data/` | Fontes oficiais, busca, normalização, timeout e cache |
@@ -56,6 +56,10 @@ Separar serviços agora adicionaria latência operacional sem validar a dor. A s
 ### Adaptadores oficiais
 
 “Global” não significa coletar toda a internet. Significa um catálogo versionado de fontes oficiais, com adaptadores específicos, cache e origem exposta ao usuário.
+
+### Simulações sem persistência
+
+Uma decisão hipotética é calculada no domínio e não altera lançamentos, saldo ou metas. O usuário só persiste algo quando escolhe transformar a simulação em plano. Isso permite explorar caminhos sem contaminar os dados reais.
 
 ## Evolução esperada
 

@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { createDatabase } from './db/database.js';
 import { createRepository } from './db/repository.js';
 import { buildForecast } from './domain/forecast.js';
+import { simulateDecision } from './domain/decision-simulator.js';
 import { calculateFinancialHealth } from './domain/health-score.js';
 import { expandRecurringEntries } from './domain/recurrence.js';
 import { AppError, assert } from './lib/errors.js';
@@ -144,13 +145,27 @@ function debtInput(body) {
   };
 }
 
-function goalInput(body) {
+function goalInput(body, current = {}) {
   return {
-    name: validate.requiredText(body.name, 'Meta', { max: 80 }),
-    targetCents: validate.integer(body.targetCents, 'Valor da meta', { min: 1 }),
-    currentCents: validate.integer(body.currentCents ?? 0, 'Valor acumulado', { min: 0 }),
-    targetDate: body.targetDate ? validate.isoDate(body.targetDate, 'Data-alvo') : null,
-    kind: validate.oneOf(body.kind ?? 'general', 'Tipo', ['emergency', 'general', 'purchase', 'debt']),
+    name: validate.requiredText(body.name ?? current.name, 'Meta', { max: 80 }),
+    targetCents: validate.integer(body.targetCents ?? current.targetCents, 'Valor da meta', { min: 1 }),
+    currentCents: validate.integer(body.currentCents ?? current.currentCents ?? 0, 'Valor acumulado', { min: 0 }),
+    targetDate: body.targetDate === null
+      ? null
+      : body.targetDate ? validate.isoDate(body.targetDate, 'Data-alvo') : current.targetDate ?? null,
+    kind: validate.oneOf(body.kind ?? current.kind ?? 'general', 'Tipo', ['emergency', 'general', 'purchase', 'debt']),
+  };
+}
+
+function decisionInput(body, today) {
+  const desiredDate = body.desiredDate ? validate.isoDate(body.desiredDate, 'Data desejada') : today;
+  assert(desiredDate >= today, 'A data desejada não pode estar no passado.', 422, 'VALIDATION_ERROR');
+  assert(desiredDate <= addDays(today, 365), 'Escolha uma data dentro dos próximos 12 meses.', 422, 'VALIDATION_ERROR');
+  return {
+    title: validate.requiredText(body.title, 'Decisão', { max: 100 }),
+    amountCents: validate.integer(body.amountCents, 'Valor da decisão', { min: 1 }),
+    desiredDate,
+    installments: validate.integer(body.installments ?? 1, 'Parcelas', { min: 1, max: 12 }),
   };
 }
 
@@ -316,7 +331,7 @@ export function createApp(config) {
       }
 
       if (req.method === 'GET' && pathname === '/api/health') {
-        return sendJson(res, 200, { status: 'ok', version: '0.2.0', timestamp: new Date().toISOString() });
+        return sendJson(res, 200, { status: 'ok', version: '0.2.1', timestamp: new Date().toISOString() });
       }
 
       if (req.method === 'POST' && pathname === '/api/auth/register') {
@@ -527,9 +542,35 @@ export function createApp(config) {
         return sendJson(res, 201, { goal });
       }
       const goalMatch = pathname.match(/^\/api\/goals\/([0-9a-f-]+)$/i);
+      if (goalMatch && req.method === 'PATCH') {
+        const current = repository.getGoal(auth.user.id, goalMatch[1]);
+        if (!current) throw new AppError('Meta não encontrada.', 404, 'NOT_FOUND');
+        return sendJson(res, 200, { goal: repository.updateGoal(auth.user.id, current.id, goalInput(await readJson(req), current)) });
+      }
       if (goalMatch && req.method === 'DELETE') {
         if (!repository.deleteGoal(auth.user.id, goalMatch[1])) throw new AppError('Meta não encontrada.', 404, 'NOT_FOUND');
         return sendJson(res, 200, { ok: true });
+      }
+
+      const decisionMatch = pathname.match(/^\/api\/spaces\/([0-9a-f-]+)\/decisions\/simulate$/i);
+      if (decisionMatch && req.method === 'POST') {
+        const body = await readJson(req);
+        const today = body.today ? validate.isoDate(body.today) : new Date().toISOString().slice(0, 10);
+        const space = repository.getSpace(auth.user.id, decisionMatch[1]);
+        if (!space) throw new AppError('Espaço não encontrado.', 404, 'NOT_FOUND');
+        const entries = repository.listEntries(auth.user.id, space.id, {
+          from: today,
+          to: addDays(today, 365),
+        }).filter((entry) => entry.status === 'planned');
+        const occurrences = expandRecurringEntries(entries, { from: today, to: addDays(today, 365) });
+        const simulation = simulateDecision({
+          startingBalanceCents: space.currentBalanceCents,
+          emergencyBufferCents: space.emergencyBufferCents,
+          events: occurrences,
+          today,
+          ...decisionInput(body, today),
+        });
+        return sendJson(res, 200, { simulation });
       }
 
       const dashboardMatch = pathname.match(/^\/api\/spaces\/([0-9a-f-]+)\/dashboard$/i);
