@@ -21,6 +21,7 @@ O problema é relevante no Brasil e fora dele. Pesquisas de endividamento, inadi
 - Cadastro, login e logout com sessões seguras.
 - **Experimentar sem conta:** saldo, lançamentos, planos e simulações ficam somente no navegador até o usuário decidir criar uma conta.
 - Backup local em JSON e migração explícita dos dados do visitante para uma conta nova.
+- Central de ajuda dentro do aplicativo e manual visual disponível para download em PDF.
 - Troca autenticada de senha com encerramento das outras sessões.
 - Exportação integral dos dados da conta em JSON.
 - Exclusão definitiva da conta e dos dados associados.
@@ -105,6 +106,7 @@ Valores monetários são armazenados em centavos inteiros para evitar erros de p
 | `node --test` | Executa a suíte de testes |
 | `node scripts/check.mjs` | Valida sintaxe e arquivos essenciais |
 | `node --test --experimental-test-coverage` | Gera relatório de cobertura |
+| `python3 scripts/generate-user-guide.py` | Regenera o manual visual em PDF |
 
 Os atalhos equivalentes também estão em `package.json` para ambientes em que o `npm` já esteja disponível.
 

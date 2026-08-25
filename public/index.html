@@ -71,6 +71,7 @@
         <button class="nav-item" data-view="entries"><span>↕</span>Lançamentos</button>
         <button class="nav-item" data-view="plans"><span>◎</span>Planos</button>
         <button class="nav-item" data-view="context"><span>⌾</span>Contexto</button>
+        <button class="nav-item" data-view="help"><span>?</span>Ajuda</button>
         <button class="nav-item" data-view="account"><span>⚙</span>Conta</button>
       </nav>
       <div class="sidebar-foot">
@@ -214,6 +215,33 @@
           </div>
           <div id="context-results" class="context-grid"></div>
           <article class="panel sources-panel"><div class="panel-heading"><div><p class="eyebrow">Rastreabilidade</p><h2>Fontes do produto</h2></div></div><div id="sources-list" class="sources-list"></div></article>
+        </section>
+
+        <section id="view-help" class="view">
+          <div class="page-heading"><div><p class="eyebrow">Central de ajuda</p><h1>Como usar o Saldo Real</h1></div></div>
+          <article class="panel help-hero">
+            <div>
+              <p class="eyebrow">Manual do usuário</p>
+              <h2>Comece em poucos minutos.</h2>
+              <p>Um guia curto para configurar o saldo, cadastrar contas, entender a projeção, simular decisões e preservar seus dados.</p>
+            </div>
+            <a class="button primary" href="/manual-saldo-real.pdf" download="Manual-Saldo-Real.pdf">Baixar manual em PDF</a>
+          </article>
+
+          <div class="help-steps" aria-label="Passos iniciais">
+            <article class="panel"><span>1</span><h3>Ajuste o saldo</h3><p>Informe o dinheiro disponível e a reserva que não deve ser gasta.</p></article>
+            <article class="panel"><span>2</span><h3>Adicione movimentos</h3><p>Cadastre contas e rendas com datas e recorrências corretas.</p></article>
+            <article class="panel"><span>3</span><h3>Leia a projeção</h3><p>Confira o saldo seguro, o pior dia e os próximos 30 dias.</p></article>
+            <article class="panel"><span>4</span><h3>Simule decisões</h3><p>Compare pagar agora, esperar ou parcelar antes de escolher.</p></article>
+          </div>
+
+          <article class="panel help-faq">
+            <div class="panel-heading"><div><p class="eyebrow">Dúvidas comuns</p><h2>Respostas rápidas</h2></div></div>
+            <details><summary>Preciso criar uma conta?</summary><p>Não. Use Experimentar sem conta. Seus dados ficam neste navegador até você decidir criar uma conta.</p></details>
+            <details><summary>O que significa saldo seguro?</summary><p>É o valor que permanece livre depois de considerar as contas previstas e proteger a reserva mínima no pior ponto da projeção.</p></details>
+            <details><summary>O Saldo Real movimenta meu dinheiro?</summary><p>Não. O aplicativo organiza os valores informados e realiza simulações educativas.</p></details>
+            <details><summary>Como evito perder os dados sem conta?</summary><p>Abra Conta e baixe o backup local. Você também pode criar uma conta e migrar o progresso de forma explícita.</p></details>
+          </article>
         </section>
 
         <section id="view-account" class="view">

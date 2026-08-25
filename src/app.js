@@ -29,6 +29,7 @@ const CONTENT_TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  '.pdf': 'application/pdf',
   '.svg': 'image/svg+xml',
   '.webmanifest': 'application/manifest+json; charset=utf-8',
 };
@@ -352,7 +353,7 @@ export function createApp(config) {
       }
 
       if (req.method === 'GET' && pathname === '/api/health') {
-        return sendJson(res, 200, { status: 'ok', version: '0.3.0', timestamp: new Date().toISOString() });
+        return sendJson(res, 200, { status: 'ok', version: '0.3.1', timestamp: new Date().toISOString() });
       }
 
       if (req.method === 'POST' && pathname === '/api/auth/register') {
