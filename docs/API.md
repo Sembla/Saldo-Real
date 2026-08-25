@@ -11,6 +11,7 @@ Base local: `http://localhost:3000/api`. Respostas usam JSON. Rotas autenticadas
 | `GET` | `/auth/me` | Retorna usuário e espaços |
 | `POST` | `/auth/logout` | Encerra sessão |
 | `GET` | `/account/export` | Baixa os dados da conta em JSON |
+| `POST` | `/account/import` | Migra um backup `saldo-real-guest` para uma conta nova e vazia |
 | `POST` | `/account/password` | Troca a senha e encerra outras sessões |
 | `DELETE` | `/account` | Exclui a conta após senha e confirmação textual |
 
@@ -23,6 +24,8 @@ Exemplo:
   "password": "SenhaForte2026"
 }
 ```
+
+O modo sem conta não usa essas rotas para os dados financeiros: cálculos e persistência acontecem no navegador. Na criação voluntária de uma conta, `/account/import` valida o backup local, recria os identificadores no servidor e executa a importação em uma transação.
 
 ## Espaços e projeção
 
@@ -84,7 +87,7 @@ A resposta contém o fluxo-base, o veredito explicável, os cenários `cashNow`,
 | Método | Rota | Uso |
 |---|---|---|
 | `GET` | `/sources` | Catálogo de fontes oficiais |
-| `GET` | `/context/:country` | Indicadores para ISO alfa-2, como `BR` ou `US` |
+| `GET` | `/context/:country` | Indicadores públicos para ISO alfa-2, como `BR` ou `US` |
 | `GET` | `/health` | Saúde do serviço |
 
 ## Erros

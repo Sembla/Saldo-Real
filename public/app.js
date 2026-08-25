@@ -1,8 +1,23 @@
+import {
+  clearGuestData,
+  createGuestApi,
+  exportGuestData,
+  hasGuestData,
+  isGuestActive,
+  isGuestLocalPath,
+  setGuestActive,
+  startGuestSession,
+} from './guest-store.js';
+
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
+const localGuestApi = createGuestApi();
+
 const state = {
   authMode: 'login',
+  mode: 'account',
+  pendingGuestMigration: false,
   user: null,
   spaces: [],
   spaceId: null,
@@ -27,7 +42,7 @@ function escapeHtml(value) {
   })[character]);
 }
 
-async function api(path, options = {}) {
+async function serverApi(path, options = {}) {
   const response = await fetch(path, {
     ...options,
     headers: options.body ? { 'Content-Type': 'application/json', ...options.headers } : options.headers,
@@ -40,6 +55,11 @@ async function api(path, options = {}) {
     throw error;
   }
   return data;
+}
+
+async function api(path, options = {}) {
+  if (state.mode === 'guest' && isGuestLocalPath(path)) return localGuestApi(path, options);
+  return serverApi(path, options);
 }
 
 function moneyToCents(value) {
@@ -86,17 +106,33 @@ function notice(message, type = 'success') {
 function showAuth() {
   $('#auth-screen').classList.remove('hidden');
   $('#app-shell').classList.add('hidden');
+  const guestButton = $('#guest-entry');
+  guestButton.textContent = hasGuestData() ? 'Continuar sem conta' : 'Experimentar sem conta';
+  $('#guest-storage-note').textContent = hasGuestData()
+    ? 'Seus dados locais continuam disponíveis neste navegador.'
+    : 'Sem e-mail e sem senha. Os dados ficam somente neste navegador.';
 }
 
 function showApp() {
   $('#auth-screen').classList.add('hidden');
   $('#app-shell').classList.remove('hidden');
+  document.body.dataset.sessionMode = state.mode;
+  const guest = state.mode === 'guest';
+  $('#guest-banner').classList.toggle('hidden', !guest);
+  $$('[data-account-only]').forEach((element) => element.classList.toggle('hidden', guest));
+  $$('[data-guest-only]').forEach((element) => element.classList.toggle('hidden', !guest));
+  $('#logout').textContent = guest ? 'Voltar ao acesso' : 'Sair';
   $('#user-name').textContent = state.user.name;
   $('#user-email').textContent = state.user.email;
   $('#user-avatar').textContent = state.user.name.slice(0, 1).toUpperCase();
   $('#account-name').textContent = state.user.name;
   $('#account-email').textContent = state.user.email;
   $('#account-avatar').textContent = state.user.name.slice(0, 1).toUpperCase();
+  $('#account-mode-title').textContent = guest ? 'Dados neste navegador' : 'Dados da conta';
+  $('#account-mode-copy').textContent = guest
+    ? 'Nenhum dado financeiro foi associado a e-mail ou enviado para a conta do Saldo Real. Faça um backup antes de limpar o navegador.'
+    : 'Seus dados financeiros ficam associados a esta conta e podem ser baixados a qualquer momento.';
+  $('#export-data').textContent = guest ? 'Baixar backup local' : 'Baixar meus dados';
   $('#today-label').textContent = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }).format(new Date());
   const decisionDate = $('#decision-form [name="desiredDate"]');
   const today = new Date().toISOString().slice(0, 10);
@@ -137,17 +173,66 @@ async function submitAuth(event) {
       password: $('#auth-password').value,
       ...(state.authMode === 'register' ? { name: $('#auth-name').value } : {}),
     };
-    const data = await api(`/api/auth/${state.authMode}`, { method: 'POST', body: JSON.stringify(body) });
+    const registering = state.authMode === 'register';
+    const guestBackup = registering && state.pendingGuestMigration && hasGuestData()
+      ? exportGuestData()
+      : null;
+    const data = await serverApi(`/api/auth/${state.authMode}`, { method: 'POST', body: JSON.stringify(body) });
+    let spaces = data.spaces;
+    let migrationError = null;
+    if (guestBackup) {
+      try {
+        const imported = await serverApi('/api/account/import', {
+          method: 'POST',
+          body: JSON.stringify(guestBackup),
+        });
+        spaces = imported.spaces;
+        clearGuestData();
+      } catch (caught) {
+        migrationError = caught;
+      }
+    }
+    state.mode = 'account';
+    state.pendingGuestMigration = false;
     state.user = data.user;
-    state.spaces = data.spaces;
+    state.spaces = spaces;
     state.spaceId = data.spaces[0]?.id;
+    if (spaces[0]) state.spaceId = spaces[0].id;
     showApp();
     await refreshAll();
+    if (guestBackup && !migrationError) notice('Conta criada e dados locais sincronizados.');
+    if (migrationError) notice(`Conta criada, mas os dados locais não foram importados: ${migrationError.message}`, 'error');
   } catch (caught) {
     error.textContent = caught.message;
   } finally {
     button.disabled = false;
   }
+}
+
+async function startGuest() {
+  try {
+    const data = startGuestSession();
+    state.mode = 'guest';
+    state.user = data.user;
+    state.spaces = data.spaces;
+    state.spaceId = data.spaces[0]?.id;
+    showApp();
+    switchView('dashboard');
+    await refreshAll();
+    notice('Modo sem conta ativo. Seus dados ficam somente neste navegador.');
+  } catch (error) {
+    $('#auth-error').textContent = error.message;
+  }
+}
+
+function beginGuestMigration() {
+  state.pendingGuestMigration = hasGuestData();
+  setGuestActive(false);
+  setAuthMode('register');
+  showAuth();
+  $('#auth-title').textContent = 'Proteja seu progresso';
+  $('#auth-subtitle').textContent = 'Crie a conta para sincronizar os dados deste navegador.';
+  $('#auth-name').focus();
 }
 
 function switchView(view) {
@@ -513,6 +598,19 @@ async function downloadData() {
   const button = $('#export-data');
   button.disabled = true;
   try {
+    if (state.mode === 'guest') {
+      const blob = new Blob([JSON.stringify(exportGuestData(), null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `saldo-real-local-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      notice('Backup local baixado com sucesso.');
+      return;
+    }
     const response = await fetch('/api/account/export');
     if (!response.ok) {
       const payload = await response.json().catch(() => ({}));
@@ -535,6 +633,18 @@ async function downloadData() {
   } finally {
     button.disabled = false;
   }
+}
+
+function removeGuestExperience() {
+  if (!window.confirm('Apagar todos os dados deste navegador? Essa ação não pode ser desfeita.')) return;
+  clearGuestData();
+  state.mode = 'account';
+  state.user = null;
+  state.spaces = [];
+  state.spaceId = null;
+  state.dashboard = null;
+  showAuth();
+  $('#auth-subtitle').textContent = 'Os dados locais foram removidos deste navegador.';
 }
 
 async function changePassword(event) {
@@ -593,17 +703,28 @@ async function initialize() {
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/service-worker.js').catch(() => {});
   setAuthMode('login');
   try {
-    const data = await api('/api/auth/me');
+    const data = await serverApi('/api/auth/me');
+    state.mode = 'account';
     state.user = data.user; state.spaces = data.spaces; state.spaceId = data.spaces[0]?.id;
     showApp();
     switchView(location.hash.slice(1) || 'dashboard');
     await refreshAll();
-  } catch { showAuth(); }
+  } catch {
+    if (isGuestActive()) await startGuest();
+    else showAuth();
+  }
 }
 
 $('#auth-toggle').addEventListener('click', () => setAuthMode(state.authMode === 'login' ? 'register' : 'login'));
+$('#guest-entry').addEventListener('click', startGuest);
 $('#auth-form').addEventListener('submit', submitAuth);
-$('#logout').addEventListener('click', async () => { await api('/api/auth/logout', { method: 'POST' }).catch(() => {}); state.user = null; showAuth(); });
+$('#logout').addEventListener('click', async () => {
+  if (state.mode === 'guest') setGuestActive(false);
+  else await serverApi('/api/auth/logout', { method: 'POST' }).catch(() => {});
+  state.user = null;
+  state.dashboard = null;
+  showAuth();
+});
 $$('[data-view]').forEach((button) => button.addEventListener('click', () => switchView(button.dataset.view)));
 $$('[data-view-link]').forEach((button) => button.addEventListener('click', () => switchView(button.dataset.viewLink)));
 $('#menu-toggle').addEventListener('click', () => $('.sidebar').classList.toggle('open'));
@@ -622,6 +743,9 @@ $('#debt-form').addEventListener('submit', saveDebt);
 $('#goal-form').addEventListener('submit', saveGoal);
 $('#load-context').addEventListener('click', loadContext);
 $('#export-data').addEventListener('click', downloadData);
+$('#guest-create-account').addEventListener('click', beginGuestMigration);
+$('#guest-banner-create-account').addEventListener('click', beginGuestMigration);
+$('#clear-guest-data').addEventListener('click', removeGuestExperience);
 $('#password-form').addEventListener('submit', changePassword);
 $('#open-delete-account').addEventListener('click', () => $('#delete-account-dialog').showModal());
 $('#delete-account-form').addEventListener('submit', deleteAccount);

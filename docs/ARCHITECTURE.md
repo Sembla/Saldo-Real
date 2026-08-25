@@ -6,7 +6,8 @@ O Saldo Real é um monólito modular para o estágio de validação. Interface, 
 
 ```mermaid
 flowchart TD
-  B["Browser / PWA"] -->|"JSON + cookie"| H["HTTP e validação"]
+  B["Browser / PWA"] --> L["Armazenamento local do visitante"]
+  B -->|"JSON + cookie após cadastro"| H["HTTP e validação"]
   H --> D["Domínio financeiro"]
   H --> R["Repositório"]
   H --> I["Integrações"]
@@ -19,7 +20,7 @@ flowchart TD
 
 | Área | Responsabilidade |
 |---|---|
-| `public/` | Interface acessível, responsiva, instalável e sem dependências de CDN |
+| `public/` | Interface, PWA e modo visitante com cálculo e persistência locais |
 | `src/domain/` | Projeção, recorrência, indicador educativo e simulação de decisões; funções puras e testáveis |
 | `src/db/` | Migrações idempotentes, acesso parametrizado e isolamento por proprietário |
 | `src/security/` | Hash de senha, token de sessão e cookies |
@@ -60,6 +61,10 @@ Separar serviços agora adicionaria latência operacional sem validar a dor. A s
 ### Simulações sem persistência
 
 Uma decisão hipotética é calculada no domínio e não altera lançamentos, saldo ou metas. O usuário só persiste algo quando escolhe transformar a simulação em plano. Isso permite explorar caminhos sem contaminar os dados reais.
+
+### Local-first antes do cadastro
+
+O visitante pode usar as funções centrais sem identidade. Espaços, lançamentos, dívidas e metas ficam em `localStorage`, e projeções e simulações são executadas no navegador. A exportação gera um JSON local. Somente após consentimento explícito, uma conta recém-criada importa o backup em transação e substitui os identificadores locais por identificadores do servidor.
 
 ## Evolução esperada
 

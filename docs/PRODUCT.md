@@ -18,6 +18,7 @@ Quando tenho contas com datas diferentes e renda que pode variar, quero saber o 
 | A projeção muda uma decisão real | Relato de gasto adiado, reduzido ou reorganizado |
 | Comparar caminhos reduz ansiedade | Usuário simula antes da compra e entende por que um caminho é mais seguro |
 | Texto reduz a fricção de cadastro | Maioria dos lançamentos criada pelo campo rápido |
+| Testar sem cadastro aumenta ativação | Visitante chega à primeira projeção antes de decidir criar uma conta |
 | Separar pessoal e negócio traz clareza | Usuário mantém ambos os espaços por duas semanas |
 | Existe disposição de pagar | Teste de R$ 9,90 a R$ 19,90/mês após valor percebido |
 
@@ -33,8 +34,9 @@ Quando tenho contas com datas diferentes e renda que pode variar, quero saber o 
 
 | Métrica | Definição | Meta inicial |
 |---|---|---:|
-| Ativação | Conta com saldo + 3 lançamentos | 60% |
-| Tempo para valor | Cadastro até primeira projeção útil | < 5 min |
+| Ativação | Visitante ou conta com saldo + 3 lançamentos | 60% |
+| Tempo para valor | Entrada no produto até primeira projeção útil | < 3 min |
+| Conversão consciente | Visitante cria conta após gerar uma projeção | Medir sem meta inicial |
 | Retenção D7 | Retorno até o sétimo dia | 35% |
 | Precisão percebida | Usuário confirma que a agenda representa o mês | 80% |
 | Decisão influenciada | Relato de ação tomada com base na projeção | 40% |

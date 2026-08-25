@@ -18,6 +18,9 @@
 - Erros internos não são enviados ao cliente; cada resposta recebe um request ID.
 - Eventos relevantes podem ser gravados na tabela de auditoria.
 - Integrações externas recebem apenas o código do país.
+- O modo visitante não envia saldos, lançamentos, dívidas, metas ou simulações ao servidor.
+- O visitante recebe aviso de que limpar o navegador remove os dados e pode exportar um backup JSON.
+- A migração local exige ação explícita, conta recém-criada e vazia, validação integral e transação atômica.
 
 ## Configuração de produção
 
@@ -36,6 +39,7 @@
 - SQLite não oferece criptografia nativa neste projeto.
 - Não há autenticação multifator.
 - Não existe Open Finance nem armazenamento de credenciais bancárias.
+- Dados do modo visitante não são criptografados pelo aplicativo no navegador e ficam sujeitos à segurança do dispositivo e do perfil do navegador.
 
 Esses itens precisam ser resolvidos antes de tratar a aplicação como serviço financeiro de produção.
 

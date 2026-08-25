@@ -1,5 +1,5 @@
-const CACHE = 'saldo-real-shell-v3';
-const SHELL = ['/', '/styles.css', '/app.js', '/icon.svg', '/manifest.webmanifest'];
+const CACHE = 'saldo-real-shell-v4';
+const SHELL = ['/', '/styles.css', '/app.js', '/guest-store.js', '/icon.svg', '/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)));

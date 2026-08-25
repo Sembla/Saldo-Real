@@ -169,6 +169,27 @@ function decisionInput(body, today) {
   };
 }
 
+function guestImportInput(body) {
+  assert(body.source === 'saldo-real-guest', 'Arquivo local incompatível.', 422, 'INVALID_IMPORT');
+  assert(Array.isArray(body.spaces) && body.spaces.length >= 1 && body.spaces.length <= 5,
+    'O backup deve conter de um a cinco espaços.', 422, 'INVALID_IMPORT');
+  const spaces = body.spaces.map((item) => {
+    const entries = Array.isArray(item.entries) ? item.entries : [];
+    const debts = Array.isArray(item.debts) ? item.debts : [];
+    const goals = Array.isArray(item.goals) ? item.goals : [];
+    assert(entries.length <= 500, 'Um espaço excede o limite de 500 lançamentos.', 422, 'IMPORT_LIMIT');
+    assert(debts.length <= 100, 'Um espaço excede o limite de 100 dívidas.', 422, 'IMPORT_LIMIT');
+    assert(goals.length <= 100, 'Um espaço excede o limite de 100 metas.', 422, 'IMPORT_LIMIT');
+    return {
+      space: spaceInput(item),
+      entries: entries.map((entry) => entryInput(entry)),
+      debts: debts.map((debt) => debtInput(debt)),
+      goals: goals.map((goal) => goalInput(goal)),
+    };
+  });
+  return spaces;
+}
+
 function parseMoney(text) {
   const match = text.match(/(?:r\$|\$|€|£)?\s*(\d{1,3}(?:[.\s]\d{3})+(?:,\d{1,2})?|\d+(?:[.,]\d{1,2})?)/i);
   if (!match) return null;
@@ -331,7 +352,7 @@ export function createApp(config) {
       }
 
       if (req.method === 'GET' && pathname === '/api/health') {
-        return sendJson(res, 200, { status: 'ok', version: '0.2.1', timestamp: new Date().toISOString() });
+        return sendJson(res, 200, { status: 'ok', version: '0.3.0', timestamp: new Date().toISOString() });
       }
 
       if (req.method === 'POST' && pathname === '/api/auth/register') {
@@ -396,7 +417,6 @@ export function createApp(config) {
 
       const countryMatch = pathname.match(/^\/api\/context\/([A-Za-z]{2})$/);
       if (req.method === 'GET' && countryMatch) {
-        requireAuth(req, repository);
         const context = await getCountryContext({
           repository,
           countryCode: validate.country(countryMatch[1]),
@@ -406,6 +426,38 @@ export function createApp(config) {
       }
 
       const auth = pathname.startsWith('/api/') ? requireAuth(req, repository) : null;
+
+      if (req.method === 'POST' && pathname === '/api/account/import') {
+        const importedSpaces = guestImportInput(await readJson(req));
+        const existingSpaces = repository.listSpaces(auth.user.id);
+        const emptyAccount = existingSpaces.length === 1
+          && existingSpaces[0].currentBalanceCents === 0
+          && existingSpaces[0].emergencyBufferCents === 0
+          && repository.listEntries(auth.user.id, existingSpaces[0].id).length === 0
+          && repository.listDebts(auth.user.id, existingSpaces[0].id).length === 0
+          && repository.listGoals(auth.user.id, existingSpaces[0].id).length === 0;
+        assert(emptyAccount, 'A importação automática exige uma conta recém-criada e vazia.', 409, 'ACCOUNT_NOT_EMPTY');
+
+        const counts = { spaces: 0, entries: 0, debts: 0, goals: 0 };
+        repository.transaction(() => {
+          repository.deleteSpace(auth.user.id, existingSpaces[0].id);
+          for (const item of importedSpaces) {
+            const space = repository.createSpace(auth.user.id, item.space);
+            counts.spaces += 1;
+            for (const entry of item.entries) { repository.createEntry(auth.user.id, space.id, entry); counts.entries += 1; }
+            for (const debt of item.debts) { repository.createDebt(auth.user.id, space.id, debt); counts.debts += 1; }
+            for (const goal of item.goals) { repository.createGoal(auth.user.id, space.id, goal); counts.goals += 1; }
+          }
+          repository.audit({
+            userId: auth.user.id,
+            action: 'account.guest_imported',
+            entityType: 'user',
+            entityId: auth.user.id,
+            metadata: counts,
+          });
+        });
+        return sendJson(res, 201, { spaces: repository.listSpaces(auth.user.id), counts });
+      }
 
       if (req.method === 'GET' && pathname === '/api/account/export') {
         const data = repository.exportUserData(auth.user.id);

@@ -19,6 +19,8 @@ O problema é relevante no Brasil e fora dele. Pesquisas de endividamento, inadi
 ## O que já funciona
 
 - Cadastro, login e logout com sessões seguras.
+- **Experimentar sem conta:** saldo, lançamentos, planos e simulações ficam somente no navegador até o usuário decidir criar uma conta.
+- Backup local em JSON e migração explícita dos dados do visitante para uma conta nova.
 - Troca autenticada de senha com encerramento das outras sessões.
 - Exportação integral dos dados da conta em JSON.
 - Exclusão definitiva da conta e dos dados associados.
@@ -70,7 +72,8 @@ O banco fica no volume `saldo-real-data`.
 
 ```mermaid
 flowchart TD
-  UI["PWA responsiva"] --> API["API Node.js"]
+  UI["PWA responsiva"] --> LOCAL["Modo visitante local"]
+  UI --> API["API Node.js"]
   API --> CORE["Projeção e simulador de decisões"]
   API --> DB[("SQLite")]
   API --> ADAPTERS["Adaptadores oficiais"]
@@ -78,7 +81,7 @@ flowchart TD
   ADAPTERS --> BCB["Banco Central"]
 ```
 
-A escolha por Node.js nativo + SQLite deixa o MVP fácil de executar, auditar e demonstrar, mantendo as fronteiras necessárias para migrar o banco ou separar serviços depois. Consulte [Arquitetura](docs/ARCHITECTURE.md) e [decisões de segurança](docs/SECURITY.md).
+A escolha por Node.js nativo + SQLite deixa o MVP fácil de executar, auditar e demonstrar. No modo visitante, os dados financeiros permanecem no armazenamento local do navegador; apenas fontes econômicas públicas são consultadas pela rede. Consulte [Arquitetura](docs/ARCHITECTURE.md) e [decisões de segurança](docs/SECURITY.md).
 
 ## Como o cálculo funciona
 

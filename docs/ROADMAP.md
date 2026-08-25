@@ -10,21 +10,21 @@ O roadmap prioriza evidência de uso antes de complexidade técnica.
 - Entrada por texto, PWA, autenticação e fontes oficiais.
 - Testes, Docker, CI e documentação.
 
-## 0.2 — Validação assistida (atual)
+## 0.2 — Validação assistida (concluído)
 
 - Exportação e exclusão integral dos dados. **Concluído.**
 - Troca autenticada de senha e encerramento das demais sessões. **Concluído.**
 - Simulador Decisão Segura com comparação entre agora, espera e parcelamento. **Concluído.**
 - Metas com atualização visual de progresso. **Concluído.**
 
-- Onboarding com primeiro valor em menos de cinco minutos.
+## 0.3 — Produto beta (atual)
+
+- Modo “Experimentar sem conta”, backup local e migração voluntária. **Concluído.**
+- Onboarding guiado com primeiro valor em menos de três minutos.
 - Métricas de ativação e retenção com consentimento.
 - Edição completa de dívidas e metas.
 - Notificações locais de risco e vencimento.
 - Acessibilidade WCAG 2.2 AA validada.
-
-## 0.3 — Produto beta
-
 - PostgreSQL, e-mail verificado e recuperação de senha.
 - Criptografia gerenciada, backups e observabilidade.
 - Compartilhamento familiar com papéis e permissões.

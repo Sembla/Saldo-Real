@@ -146,6 +146,60 @@ test('simula uma decisão usando o fluxo autenticado do espaço', async (context
   assert.equal(updatedGoal.payload.goal.currentCents, 25_000);
 });
 
+test('migra dados do visitante somente para uma conta nova e vazia', async (context) => {
+  const fixture = await startTestApp();
+  context.after(fixture.close);
+
+  const registration = await jsonRequest(fixture.origin, '/api/auth/register', {
+    method: 'POST',
+    body: { name: 'Visitante Migrado', email: 'migrado@example.com', password: 'SenhaForte2026' },
+  });
+  const cookie = registration.response.headers.get('set-cookie').split(';')[0];
+  const imported = await jsonRequest(fixture.origin, '/api/account/import', {
+    method: 'POST', cookie,
+    body: {
+      exportVersion: 1,
+      source: 'saldo-real-guest',
+      spaces: [{
+        name: 'Minha vida', kind: 'personal', currency: 'BRL', locale: 'pt-BR',
+        currentBalanceCents: 300_000, emergencyBufferCents: 50_000,
+        entries: [{
+          title: 'Salário', type: 'income', amountCents: 250_000, category: 'income',
+          date: '2026-09-01', recurrence: 'monthly', confidence: 1, status: 'planned',
+        }],
+        debts: [],
+        goals: [{ name: 'Notebook', targetCents: 400_000, currentCents: 50_000, kind: 'purchase' }],
+      }],
+    },
+  });
+  assert.equal(imported.response.status, 201);
+  assert.deepEqual(imported.payload.counts, { spaces: 1, entries: 1, debts: 0, goals: 1 });
+  assert.equal(imported.payload.spaces[0].name, 'Minha vida');
+
+  const dashboard = await jsonRequest(
+    fixture.origin,
+    `/api/spaces/${imported.payload.spaces[0].id}/dashboard?today=2026-08-25`,
+    { cookie },
+  );
+  assert.equal(dashboard.response.status, 200);
+  assert.equal(dashboard.payload.space.currentBalanceCents, 300_000);
+  assert.equal(dashboard.payload.goals[0].name, 'Notebook');
+
+  const repeated = await jsonRequest(fixture.origin, '/api/account/import', {
+    method: 'POST', cookie,
+    body: { source: 'saldo-real-guest', spaces: [{ name: 'Outro', entries: [], debts: [], goals: [] }] },
+  });
+  assert.equal(repeated.response.status, 409);
+});
+
+test('contexto econômico público não exige conta', async (context) => {
+  const fixture = await startTestApp();
+  context.after(fixture.close);
+  const contextResponse = await jsonRequest(fixture.origin, '/api/context/BR');
+  assert.equal(contextResponse.response.status, 200);
+  assert.equal(contextResponse.payload.unavailable, true);
+});
+
 test('exporta dados, troca a senha e invalida a sessão anterior', async (context) => {
   const fixture = await startTestApp();
   context.after(fixture.close);

@@ -52,6 +52,9 @@
           <button class="button primary full" type="submit"><span id="auth-action">Entrar</span></button>
         </form>
         <button id="auth-toggle" class="text-button" type="button">Ainda não tenho conta</button>
+        <div class="guest-divider"><span>ou</span></div>
+        <button id="guest-entry" class="button guest-button full" type="button">Experimentar sem conta</button>
+        <p id="guest-storage-note" class="guest-storage-note">Sem e-mail e sem senha. Os dados ficam somente neste navegador.</p>
         <p id="auth-error" class="form-error" role="alert"></p>
       </div>
     </section>
@@ -77,6 +80,10 @@
     </aside>
 
     <div class="workspace">
+      <aside id="guest-banner" class="guest-banner hidden" aria-label="Modo sem conta">
+        <div><strong>Modo sem conta</strong><span>Seus dados financeiros estão somente neste navegador.</span></div>
+        <button id="guest-banner-create-account" class="text-button" type="button">Criar conta e sincronizar</button>
+      </aside>
       <header class="topbar">
         <button id="menu-toggle" class="icon-button mobile-only" aria-label="Abrir menu">☰</button>
         <div>
@@ -213,16 +220,16 @@
           <div class="page-heading"><div><p class="eyebrow">Segurança e privacidade</p><h1>Sua conta</h1></div></div>
           <div class="account-grid">
             <article class="panel settings-card">
-              <div class="panel-heading"><div><p class="eyebrow">Perfil</p><h2>Dados da conta</h2></div></div>
+              <div class="panel-heading"><div><p class="eyebrow">Privacidade</p><h2 id="account-mode-title">Dados da conta</h2></div></div>
               <div class="identity-card">
                 <span id="account-avatar">U</span>
                 <div><strong id="account-name">Usuário</strong><small id="account-email"></small></div>
               </div>
-              <p class="settings-copy">Seus dados financeiros ficam associados a esta conta e podem ser baixados a qualquer momento.</p>
+              <p id="account-mode-copy" class="settings-copy">Seus dados financeiros ficam associados a esta conta e podem ser baixados a qualquer momento.</p>
               <button id="export-data" class="button secondary" type="button">Baixar meus dados</button>
             </article>
 
-            <article class="panel settings-card">
+            <article class="panel settings-card" data-account-only>
               <div class="panel-heading"><div><p class="eyebrow">Acesso</p><h2>Trocar senha</h2></div></div>
               <form id="password-form" class="settings-form">
                 <label>Senha atual<input name="currentPassword" type="password" autocomplete="current-password" required></label>
@@ -234,7 +241,19 @@
               </form>
             </article>
 
-            <article class="panel settings-card danger-panel account-full">
+            <article class="panel settings-card guest-account-panel account-full hidden" data-guest-only>
+              <div>
+                <p class="eyebrow">Backup e sincronização</p>
+                <h2>Gostou da experiência?</h2>
+                <p class="settings-copy">Crie uma conta somente quando quiser acessar em outro dispositivo e manter uma cópia protegida no Saldo Real.</p>
+              </div>
+              <div class="guest-account-actions">
+                <button id="guest-create-account" class="button primary" type="button">Criar conta e levar meus dados</button>
+                <button id="clear-guest-data" class="button danger" type="button">Apagar dados deste navegador</button>
+              </div>
+            </article>
+
+            <article class="panel settings-card danger-panel account-full" data-account-only>
               <div>
                 <p class="eyebrow">Zona de risco</p>
                 <h2>Excluir conta e dados</h2>
