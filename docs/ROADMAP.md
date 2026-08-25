@@ -2,7 +2,7 @@
 
 O roadmap prioriza evidência de uso antes de complexidade técnica.
 
-## 0.1 — MVP funcional (atual)
+## 0.1 — MVP funcional (concluído)
 
 - Saldo seguro, projeções de 7 e 30 dias e alertas.
 - Renda variável por confiança.
@@ -10,13 +10,15 @@ O roadmap prioriza evidência de uso antes de complexidade técnica.
 - Entrada por texto, PWA, autenticação e fontes oficiais.
 - Testes, Docker, CI e documentação.
 
-## 0.2 — Validação assistida
+## 0.2 — Validação assistida (atual)
+
+- Exportação e exclusão integral dos dados. **Concluído.**
+- Troca autenticada de senha e encerramento das demais sessões. **Concluído.**
 
 - Onboarding com primeiro valor em menos de cinco minutos.
 - Métricas de ativação e retenção com consentimento.
 - Edição completa de dívidas e metas.
 - Notificações locais de risco e vencimento.
-- Exportação e exclusão integral dos dados.
 - Acessibilidade WCAG 2.2 AA validada.
 
 ## 0.3 — Produto beta

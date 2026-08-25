@@ -105,3 +105,87 @@ test('protege dados entre usuários e interpreta texto curto', async (context) =
   assert.equal(parsedIncome.payload.entry.type, 'income');
   assert.equal(parsedIncome.payload.entry.amountCents, 250_000);
 });
+
+test('exporta dados, troca a senha e invalida a sessão anterior', async (context) => {
+  const fixture = await startTestApp();
+  context.after(fixture.close);
+
+  const registration = await jsonRequest(fixture.origin, '/api/auth/register', {
+    method: 'POST',
+    body: { name: 'Conta Segura', email: 'segura@example.com', password: 'SenhaAntiga2026' },
+  });
+  const oldCookie = registration.response.headers.get('set-cookie').split(';')[0];
+  const spaceId = registration.payload.spaces[0].id;
+  await jsonRequest(fixture.origin, `/api/spaces/${spaceId}/entries`, {
+    method: 'POST', cookie: oldCookie,
+    body: {
+      title: 'Salário', type: 'income', amountCents: 300_000, category: 'income',
+      date: '2026-09-01', recurrence: 'monthly',
+    },
+  });
+
+  const exported = await jsonRequest(fixture.origin, '/api/account/export', { cookie: oldCookie });
+  assert.equal(exported.response.status, 200);
+  assert.match(exported.response.headers.get('content-disposition'), /saldo-real-dados-/);
+  assert.equal(exported.payload.user.email, 'segura@example.com');
+  assert.equal(exported.payload.spaces[0].entries[0].title, 'Salário');
+  assert.equal(JSON.stringify(exported.payload).includes('password'), false);
+
+  const wrongPassword = await jsonRequest(fixture.origin, '/api/account/password', {
+    method: 'POST', cookie: oldCookie,
+    body: { currentPassword: 'SenhaErrada2026', newPassword: 'SenhaNova2026' },
+  });
+  assert.equal(wrongPassword.response.status, 401);
+
+  const changed = await jsonRequest(fixture.origin, '/api/account/password', {
+    method: 'POST', cookie: oldCookie,
+    body: { currentPassword: 'SenhaAntiga2026', newPassword: 'SenhaNova2026' },
+  });
+  assert.equal(changed.response.status, 200);
+  const newCookie = changed.response.headers.get('set-cookie').split(';')[0];
+
+  const oldSession = await jsonRequest(fixture.origin, '/api/auth/me', { cookie: oldCookie });
+  assert.equal(oldSession.response.status, 401);
+  const newSession = await jsonRequest(fixture.origin, '/api/auth/me', { cookie: newCookie });
+  assert.equal(newSession.response.status, 200);
+
+  const oldLogin = await jsonRequest(fixture.origin, '/api/auth/login', {
+    method: 'POST', body: { email: 'segura@example.com', password: 'SenhaAntiga2026' },
+  });
+  assert.equal(oldLogin.response.status, 401);
+  const newLogin = await jsonRequest(fixture.origin, '/api/auth/login', {
+    method: 'POST', body: { email: 'segura@example.com', password: 'SenhaNova2026' },
+  });
+  assert.equal(newLogin.response.status, 200);
+});
+
+test('exclusão da conta exige confirmação e remove o acesso', async (context) => {
+  const fixture = await startTestApp();
+  context.after(fixture.close);
+
+  const registration = await jsonRequest(fixture.origin, '/api/auth/register', {
+    method: 'POST',
+    body: { name: 'Excluir Teste', email: 'excluir@example.com', password: 'ExcluirSenha2026' },
+  });
+  const cookie = registration.response.headers.get('set-cookie').split(';')[0];
+
+  const denied = await jsonRequest(fixture.origin, '/api/account', {
+    method: 'DELETE', cookie,
+    body: { confirmation: 'EXCLUIR', password: 'ExcluirSenha2026' },
+  });
+  assert.equal(denied.response.status, 422);
+
+  const deleted = await jsonRequest(fixture.origin, '/api/account', {
+    method: 'DELETE', cookie,
+    body: { confirmation: 'EXCLUIR MINHA CONTA', password: 'ExcluirSenha2026' },
+  });
+  assert.equal(deleted.response.status, 200);
+  assert.match(deleted.response.headers.get('set-cookie'), /Max-Age=0/);
+
+  const session = await jsonRequest(fixture.origin, '/api/auth/me', { cookie });
+  assert.equal(session.response.status, 401);
+  const login = await jsonRequest(fixture.origin, '/api/auth/login', {
+    method: 'POST', body: { email: 'excluir@example.com', password: 'ExcluirSenha2026' },
+  });
+  assert.equal(login.response.status, 401);
+});

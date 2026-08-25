@@ -87,6 +87,9 @@ function showApp() {
   $('#user-name').textContent = state.user.name;
   $('#user-email').textContent = state.user.email;
   $('#user-avatar').textContent = state.user.name.slice(0, 1).toUpperCase();
+  $('#account-name').textContent = state.user.name;
+  $('#account-email').textContent = state.user.email;
+  $('#account-avatar').textContent = state.user.name.slice(0, 1).toUpperCase();
   $('#today-label').textContent = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }).format(new Date());
   renderSpaceSelect();
 }
@@ -379,6 +382,86 @@ async function createSpace() {
   } catch (error) { notice(error.message, 'error'); renderSpaceSelect(); }
 }
 
+async function downloadData() {
+  const button = $('#export-data');
+  button.disabled = true;
+  try {
+    const response = await fetch('/api/account/export');
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.error?.message ?? 'Não foi possível exportar os dados.');
+    }
+    const blob = await response.blob();
+    const disposition = response.headers.get('content-disposition') ?? '';
+    const filename = disposition.match(/filename="([^"]+)"/)?.[1] ?? 'saldo-real-dados.json';
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    notice('Cópia dos seus dados baixada com sucesso.');
+  } catch (error) {
+    notice(error.message, 'error');
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function changePassword(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const error = $('[data-password-error]', form);
+  const data = new FormData(form);
+  error.textContent = '';
+  if (data.get('newPassword') !== data.get('confirmPassword')) {
+    error.textContent = 'As novas senhas não coincidem.';
+    return;
+  }
+  const button = form.querySelector('button[type="submit"]');
+  button.disabled = true;
+  try {
+    await api('/api/account/password', { method: 'POST', body: JSON.stringify({
+      currentPassword: data.get('currentPassword'), newPassword: data.get('newPassword'),
+    }) });
+    form.reset();
+    notice('Senha atualizada. As outras sessões foram encerradas.');
+  } catch (caught) {
+    error.textContent = caught.message;
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function deleteAccount(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const error = $('[data-delete-account-error]', form);
+  const data = new FormData(form);
+  const button = form.querySelector('button[type="submit"]');
+  error.textContent = '';
+  button.disabled = true;
+  try {
+    await api('/api/account', { method: 'DELETE', body: JSON.stringify({
+      confirmation: data.get('confirmation'), password: data.get('password'),
+    }) });
+    $('#delete-account-dialog').close();
+    form.reset();
+    state.user = null;
+    state.spaces = [];
+    state.spaceId = null;
+    setAuthMode('login');
+    showAuth();
+    $('#auth-subtitle').textContent = 'Sua conta e seus dados foram excluídos.';
+  } catch (caught) {
+    error.textContent = caught.message;
+  } finally {
+    button.disabled = false;
+  }
+}
+
 async function initialize() {
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/service-worker.js').catch(() => {});
   setAuthMode('login');
@@ -410,6 +493,10 @@ $('#quick-entry-form').addEventListener('submit', quickEntry);
 $('#debt-form').addEventListener('submit', saveDebt);
 $('#goal-form').addEventListener('submit', saveGoal);
 $('#load-context').addEventListener('click', loadContext);
+$('#export-data').addEventListener('click', downloadData);
+$('#password-form').addEventListener('submit', changePassword);
+$('#open-delete-account').addEventListener('click', () => $('#delete-account-dialog').showModal());
+$('#delete-account-form').addEventListener('submit', deleteAccount);
 document.addEventListener('click', (event) => {
   const entry = event.target.closest('[data-delete-entry]');
   const debt = event.target.closest('[data-delete-debt]');

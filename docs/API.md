@@ -10,6 +10,9 @@ Base local: `http://localhost:3000/api`. Respostas usam JSON. Rotas autenticadas
 | `POST` | `/auth/login` | Inicia sessão |
 | `GET` | `/auth/me` | Retorna usuário e espaços |
 | `POST` | `/auth/logout` | Encerra sessão |
+| `GET` | `/account/export` | Baixa os dados da conta em JSON |
+| `POST` | `/account/password` | Troca a senha e encerra outras sessões |
+| `DELETE` | `/account` | Exclui a conta após senha e confirmação textual |
 
 Exemplo:
 

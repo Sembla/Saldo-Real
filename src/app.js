@@ -316,7 +316,7 @@ export function createApp(config) {
       }
 
       if (req.method === 'GET' && pathname === '/api/health') {
-        return sendJson(res, 200, { status: 'ok', version: '0.1.0', timestamp: new Date().toISOString() });
+        return sendJson(res, 200, { status: 'ok', version: '0.2.0', timestamp: new Date().toISOString() });
       }
 
       if (req.method === 'POST' && pathname === '/api/auth/register') {
@@ -391,6 +391,58 @@ export function createApp(config) {
       }
 
       const auth = pathname.startsWith('/api/') ? requireAuth(req, repository) : null;
+
+      if (req.method === 'GET' && pathname === '/api/account/export') {
+        const data = repository.exportUserData(auth.user.id);
+        if (!data) throw new AppError('Conta não encontrada.', 404, 'NOT_FOUND');
+        const filename = `saldo-real-dados-${new Date().toISOString().slice(0, 10)}.json`;
+        repository.audit({ userId: auth.user.id, action: 'account.exported', entityType: 'user', entityId: auth.user.id });
+        return sendJson(res, 200, data, {
+          'Content-Disposition': `attachment; filename="${filename}"`,
+        });
+      }
+
+      if (req.method === 'POST' && pathname === '/api/account/password') {
+        const body = await readJson(req);
+        const credentials = repository.findUserCredentialsById(auth.user.id);
+        if (!credentials || !verifyPassword(String(body.currentPassword ?? ''), credentials.password_hash)) {
+          throw new AppError('A senha atual está incorreta.', 401, 'INVALID_CREDENTIALS');
+        }
+        const newPassword = validate.password(body.newPassword);
+        assert(!verifyPassword(newPassword, credentials.password_hash), 'A nova senha deve ser diferente da atual.', 422, 'VALIDATION_ERROR');
+        const token = createSessionToken();
+        const expiresAt = new Date(Date.now() + config.sessionTtlHours * 3_600_000).toISOString();
+        repository.transaction(() => {
+          repository.updateUserPassword(auth.user.id, hashPassword(newPassword));
+          repository.deleteSessionsForUser(auth.user.id);
+          repository.createSession({ userId: auth.user.id, tokenHash: hashSessionToken(token), expiresAt });
+          repository.audit({ userId: auth.user.id, action: 'account.password_changed', entityType: 'user', entityId: auth.user.id });
+        });
+        return sendJson(res, 200, { ok: true }, {
+          'Set-Cookie': sessionCookie(token, { secure: config.cookieSecure, maxAgeSeconds: config.sessionTtlHours * 3600 }),
+        });
+      }
+
+      if (req.method === 'DELETE' && pathname === '/api/account') {
+        const body = await readJson(req);
+        assert(
+          String(body.confirmation ?? '').trim() === 'EXCLUIR MINHA CONTA',
+          'Digite EXCLUIR MINHA CONTA para confirmar.',
+          422,
+          'CONFIRMATION_REQUIRED',
+        );
+        const credentials = repository.findUserCredentialsById(auth.user.id);
+        if (!credentials || !verifyPassword(String(body.password ?? ''), credentials.password_hash)) {
+          throw new AppError('Senha incorreta. A conta não foi excluída.', 401, 'INVALID_CREDENTIALS');
+        }
+        repository.transaction(() => {
+          repository.audit({ userId: auth.user.id, action: 'account.deleted', entityType: 'user', entityId: auth.user.id });
+          repository.deleteUser(auth.user.id);
+        });
+        return sendJson(res, 200, { ok: true }, {
+          'Set-Cookie': expiredSessionCookie({ secure: config.cookieSecure }),
+        });
+      }
 
       if (req.method === 'GET' && pathname === '/api/spaces') {
         return sendJson(res, 200, { spaces: repository.listSpaces(auth.user.id) });

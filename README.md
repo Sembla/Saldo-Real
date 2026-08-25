@@ -8,7 +8,7 @@
 
 **Beta online:** [saldo-real-production.up.railway.app](https://saldo-real-production.up.railway.app)
 
-> Use dados fictícios durante a validação inicial. A versão beta ainda não possui recuperação de senha, confirmação de e-mail ou exportação integral dos dados.
+> Use dados fictícios durante a validação inicial. A versão beta ainda não possui recuperação de senha por e-mail nem confirmação de endereço.
 
 ## Por que este produto existe
 
@@ -19,6 +19,9 @@ O problema é relevante no Brasil e fora dele. Pesquisas de endividamento, inadi
 ## O que já funciona
 
 - Cadastro, login e logout com sessões seguras.
+- Troca autenticada de senha com encerramento das outras sessões.
+- Exportação integral dos dados da conta em JSON.
+- Exclusão definitiva da conta e dos dados associados.
 - Espaços separados para finanças pessoais e do negócio.
 - Saldo atual e reserva mínima protegida.
 - Entradas e saídas avulsas, semanais, mensais ou anuais.

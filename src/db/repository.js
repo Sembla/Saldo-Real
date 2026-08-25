@@ -97,6 +97,48 @@ export function createRepository(db) {
       return row && { id: row.id, email: row.email, name: row.name, locale: row.locale, createdAt: row.created_at };
     },
 
+    findUserCredentialsById(id) {
+      return db.prepare('SELECT id, password_hash FROM users WHERE id = ?').get(id);
+    },
+
+    updateUserPassword(id, passwordHash) {
+      return db.prepare('UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?')
+        .run(passwordHash, now(), id).changes;
+    },
+
+    deleteUser(id) {
+      return db.prepare('DELETE FROM users WHERE id = ?').run(id).changes;
+    },
+
+    exportUserData(id) {
+      const user = this.findUserById(id);
+      if (!user) return null;
+      const spaces = this.listSpaces(id).map((space) => ({
+        ...space,
+        entries: db.prepare('SELECT * FROM entries WHERE space_id = ? ORDER BY date, created_at')
+          .all(space.id).map(mapEntry),
+        debts: db.prepare('SELECT * FROM debts WHERE space_id = ? ORDER BY created_at')
+          .all(space.id).map(mapDebt),
+        goals: db.prepare('SELECT * FROM goals WHERE space_id = ? ORDER BY created_at')
+          .all(space.id).map(mapGoal),
+      }));
+      const auditEvents = db.prepare(`SELECT action, entity_type, entity_id, metadata_json, created_at
+        FROM audit_events WHERE user_id = ? ORDER BY created_at`).all(id).map((row) => ({
+        action: row.action,
+        entityType: row.entity_type,
+        entityId: row.entity_id,
+        metadata: JSON.parse(row.metadata_json),
+        createdAt: row.created_at,
+      }));
+      return {
+        exportVersion: 1,
+        exportedAt: now(),
+        user,
+        spaces,
+        auditEvents,
+      };
+    },
+
     createSession({ userId, tokenHash, expiresAt }) {
       const id = randomUUID();
       const timestamp = now();
@@ -117,6 +159,10 @@ export function createRepository(db) {
 
     deleteSession(tokenHash) {
       db.prepare('DELETE FROM sessions WHERE token_hash = ?').run(tokenHash);
+    },
+
+    deleteSessionsForUser(userId) {
+      return db.prepare('DELETE FROM sessions WHERE user_id = ?').run(userId).changes;
     },
 
     purgeExpiredSessions() {

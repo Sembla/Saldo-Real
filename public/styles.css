@@ -22,6 +22,7 @@ html { min-width: 320px; background: var(--paper); }
 body { min-height: 100vh; margin: 0; background: var(--paper); }
 button, input, select { font: inherit; }
 button, select { cursor: pointer; }
+button:disabled { cursor: wait; opacity: .62; transform: none !important; }
 button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid rgba(147, 187, 53, .35); outline-offset: 2px; }
 .hidden { display: none !important; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
@@ -57,6 +58,8 @@ small { color: var(--muted); font-weight: 400; }
 .button.primary:hover { background: #d7fa80; }
 .button.secondary { color: var(--ink); border-color: var(--line); background: var(--surface); }
 .button.ink { color: white; background: var(--ink); white-space: nowrap; }
+.button.danger { color: white; background: #9f3f30; }
+.button.danger:hover { background: #853326; }
 .button.full { width: 100%; }
 .text-button { padding: 4px; border: 0; color: var(--ink-soft); background: transparent; font-weight: 750; text-decoration: underline; text-decoration-color: var(--lime-dark); text-underline-offset: 4px; }
 .text-button.left { text-align: left; }
@@ -147,6 +150,19 @@ small { color: var(--muted); font-weight: 400; }
 .source-item { border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
 .source-item a { color: var(--ink); font-size: 13px; font-weight: 800; text-decoration-color: var(--lime-dark); text-underline-offset: 3px; }
 .source-item p { margin: 6px 0 0; color: var(--muted); font-size: 11px; line-height: 1.4; }
+.account-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.account-full { grid-column: 1 / -1; }
+.settings-card { display: flex; flex-direction: column; align-items: start; }
+.settings-card > .panel-heading { width: 100%; }
+.settings-copy { color: var(--muted); font-size: 13px; line-height: 1.55; }
+.identity-card { display: flex; align-items: center; gap: 12px; width: 100%; border: 1px solid var(--line); border-radius: 13px; padding: 14px; }
+.identity-card > span { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 50%; color: var(--ink); background: var(--lime); font-weight: 900; }
+.identity-card > div { min-width: 0; display: grid; gap: 2px; }
+.identity-card strong, .identity-card small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.settings-form { display: grid; gap: 13px; width: 100%; }
+.danger-panel { flex-direction: row; align-items: center; justify-content: space-between; gap: 24px; border-color: #edb7ad; background: #fff9f6; }
+.danger-panel h2 { margin: 0; font-family: Georgia, serif; font-size: 26px; font-weight: 400; }
+.warning-box { margin: 0; border-left: 4px solid var(--coral); border-radius: 8px; padding: 12px 14px; color: #74382d; background: #f9ded8; font-size: 13px; line-height: 1.5; }
 .notice { margin-bottom: 18px; border-left: 4px solid var(--lime-dark); border-radius: 8px; padding: 12px 14px; color: var(--ink-soft); background: #e8f2d5; font-size: 13px; }
 .notice.error { border-color: var(--coral); background: #f9ded8; }
 dialog { width: min(620px, calc(100vw - 28px)); border: 0; border-radius: 20px; padding: 0; color: var(--ink); background: var(--surface); box-shadow: var(--shadow); }
@@ -179,6 +195,8 @@ dialog::backdrop { background: rgba(16,35,29,.58); backdrop-filter: blur(4px); }
   .topbar-actions .secondary { display: none; }
   .content { padding: 32px 18px 60px; }
   .two-column { grid-template-columns: 1fr; }
+  .account-grid { grid-template-columns: 1fr; }
+  .account-full { grid-column: auto; }
   .page-heading { align-items: start; }
 }
 
@@ -196,6 +214,7 @@ dialog::backdrop { background: rgba(16,35,29,.58); backdrop-filter: blur(4px); }
   .field-grid .wide { grid-column: auto; }
   .context-controls { align-items: stretch; flex-direction: column; }
   .context-controls label, .context-controls .button { width: 100%; }
+  .danger-panel { align-items: stretch; flex-direction: column; }
   .data-list .list-row { grid-template-columns: auto minmax(0,1fr) auto; }
   .data-list .delete-button { grid-column: 3; }
 }

@@ -67,6 +67,7 @@
         <button class="nav-item" data-view="entries"><span>↕</span>Lançamentos</button>
         <button class="nav-item" data-view="plans"><span>◎</span>Planos</button>
         <button class="nav-item" data-view="context"><span>⌾</span>Contexto</button>
+        <button class="nav-item" data-view="account"><span>⚙</span>Conta</button>
       </nav>
       <div class="sidebar-foot">
         <div class="user-chip"><span id="user-avatar">U</span><div><strong id="user-name">Usuário</strong><small id="user-email"></small></div></div>
@@ -174,6 +175,42 @@
           <div id="context-results" class="context-grid"></div>
           <article class="panel sources-panel"><div class="panel-heading"><div><p class="eyebrow">Rastreabilidade</p><h2>Fontes do produto</h2></div></div><div id="sources-list" class="sources-list"></div></article>
         </section>
+
+        <section id="view-account" class="view">
+          <div class="page-heading"><div><p class="eyebrow">Segurança e privacidade</p><h1>Sua conta</h1></div></div>
+          <div class="account-grid">
+            <article class="panel settings-card">
+              <div class="panel-heading"><div><p class="eyebrow">Perfil</p><h2>Dados da conta</h2></div></div>
+              <div class="identity-card">
+                <span id="account-avatar">U</span>
+                <div><strong id="account-name">Usuário</strong><small id="account-email"></small></div>
+              </div>
+              <p class="settings-copy">Seus dados financeiros ficam associados a esta conta e podem ser baixados a qualquer momento.</p>
+              <button id="export-data" class="button secondary" type="button">Baixar meus dados</button>
+            </article>
+
+            <article class="panel settings-card">
+              <div class="panel-heading"><div><p class="eyebrow">Acesso</p><h2>Trocar senha</h2></div></div>
+              <form id="password-form" class="settings-form">
+                <label>Senha atual<input name="currentPassword" type="password" autocomplete="current-password" required></label>
+                <label>Nova senha<input name="newPassword" type="password" autocomplete="new-password" minlength="10" required></label>
+                <label>Confirmar nova senha<input name="confirmPassword" type="password" autocomplete="new-password" minlength="10" required></label>
+                <small>Mínimo de 10 caracteres, com letras e números. A troca encerra as outras sessões abertas.</small>
+                <p class="form-error" data-password-error role="alert"></p>
+                <button class="button primary" type="submit">Atualizar senha</button>
+              </form>
+            </article>
+
+            <article class="panel settings-card danger-panel account-full">
+              <div>
+                <p class="eyebrow">Zona de risco</p>
+                <h2>Excluir conta e dados</h2>
+                <p class="settings-copy">Remove definitivamente espaços, lançamentos, dívidas, metas e sessões. Baixe uma cópia antes, se necessário.</p>
+              </div>
+              <button id="open-delete-account" class="button danger" type="button">Excluir minha conta</button>
+            </article>
+          </div>
+        </section>
       </main>
     </div>
   </div>
@@ -202,6 +239,17 @@
       <label>Reserva mínima que não deve ser gasta<input name="buffer" inputmode="decimal" required></label>
       <p class="form-error" data-dialog-error role="alert"></p>
       <button class="button primary full" value="default" type="submit">Atualizar projeção</button>
+    </form>
+  </dialog>
+
+  <dialog id="delete-account-dialog">
+    <form id="delete-account-form" method="dialog" class="dialog-form">
+      <div class="dialog-heading"><div><p class="eyebrow">Ação definitiva</p><h2>Excluir sua conta?</h2></div><button class="icon-button" value="cancel" formnovalidate aria-label="Fechar">×</button></div>
+      <p class="warning-box">Essa ação não pode ser desfeita. Todos os dados financeiros da conta serão apagados.</p>
+      <label>Digite <strong>EXCLUIR MINHA CONTA</strong><input name="confirmation" autocomplete="off" required></label>
+      <label>Confirme sua senha<input name="password" type="password" autocomplete="current-password" required></label>
+      <p class="form-error" data-delete-account-error role="alert"></p>
+      <button class="button danger full" value="default" type="submit">Excluir definitivamente</button>
     </form>
   </dialog>
 </body>

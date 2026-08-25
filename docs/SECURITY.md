@@ -6,7 +6,9 @@
 - Token de sessão aleatório; somente o hash SHA-256 é persistido.
 - Cookie `HttpOnly`, `SameSite=Strict`, `Path=/` e `Secure` configurável.
 - Validade de sessão e remoção no logout.
+- Troca de senha autenticada com invalidação das demais sessões.
 - Autorização por proprietário em espaços, lançamentos, dívidas e metas.
+- Portabilidade em JSON e exclusão da conta com confirmação da senha.
 - SQL parametrizado e chaves estrangeiras com exclusão em cascata.
 - Validação de tipo, faixa, tamanho, moeda e datas na API.
 - Limite de 1 MB por corpo JSON.
