@@ -10,6 +10,22 @@
 
 > Use dados fictícios durante a validação inicial. A versão beta ainda não possui recuperação de senha por e-mail nem confirmação de endereço.
 
+## Evidência funcional
+
+A aplicação está publicada no Railway e pode ser utilizada diretamente no navegador. As capturas abaixo registram dois estados do mesmo fluxo: o painel inicial sem movimentações e o painel após a inclusão de receitas e despesas fictícias, com atualização da projeção, agenda e indicador de saúde do fluxo.
+
+### 1. Estado inicial
+
+![Saldo Real — painel inicial sem movimentações](docs/dashboard-empty.png)
+
+### 2. Projeção após lançamentos
+
+![Saldo Real — painel com dados e projeção financeira](docs/dashboard-with-data.png)
+
+No segundo estado, o dashboard reflete **R$ 4.500,00 em entradas**, **R$ 2.500,00 em saídas** e **R$ 2.000,00 projetados em 30 dias**, além de atualizar o gráfico e os próximos movimentos. Os valores são dados fictícios usados exclusivamente para demonstração.
+
+**O que esta evidência demonstra:** interface executável em ambiente público, entrada de movimentações, processamento das regras de projeção e atualização do estado financeiro apresentado ao usuário.
+
 ## Por que este produto existe
 
 Muitos aplicativos mostram o que já aconteceu. O **Saldo Real** trabalha na dor que vem antes da decisão: “posso gastar isso sem faltar para as contas?”. Ele calcula o menor saldo projetado, preserva uma reserva definida pelo usuário e reduz entradas variáveis pela probabilidade de recebimento — sem suavizar despesas.
